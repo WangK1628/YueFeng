@@ -116,15 +116,17 @@
         
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="flex flex-col md:flex-row items-center">
-                <div class="md:w-1/2 mb-10 md:mb-0">
-                    <h1 class="font-display font-bold text-[clamp(2.5rem,5vw,4rem)] leading-tight text-dark mb-4">
+                <div class="md:w-1/2 mb-10 md:mb-0 ">
+				<div class="md:justify-center justify-center">
+                    <h1 class="font-display font-bold text-[clamp(2.5rem,5vw,4rem)] leading-tight text-dark mb-4 md:justify-center justify-center">
                         月峰听说<br><span class="text-primary">学生端小程序</span>
                     </h1>
-                    <p class="text-lg md:text-xl text-gray-600 mb-8 max-w-lg">
+                    <p class="text-lg md:text-xl text-gray-600 mb-8 max-w-lg md:justify-center justify-center">
                         专为湖北省初中生打造的英语听说训练平台，同步教材、智能评测、个性化学习，轻松应对中考听说考试
                     </p>
-                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                        <!-- 小程序链接按钮 -->
+				</div>
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 ">
+                        <!-- 小程序链接按钮 居中：md:justify-center justify-center-->
                         <a href="javascript:void(0);" onclick="copyWeappLink()" class="app-btn font-semibold px-8 py-3 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-xl text-center">
                             <i class="fa fa-link mr-2"></i>复制小程序链接
                         </a>
@@ -132,8 +134,17 @@
                             <i class="fa fa-mobile mr-2"></i>查看界面演示
                         </a>
                     </div>
+					<!-- 新增：融媒体卡 + 配套书籍演示按钮组（与原有样式统一，间距合理） -->
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mt-6 ">
+                        <a href="#media-card" class="bg-accent hover:bg-accent/90 text-white font-semibold px-8 py-3 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-xl text-center w-full sm:w-auto">
+                            <i class="fa fa-id-card-o mr-2"></i>融媒体卡演示界面
+                        </a>
+                        <a href="#books" class="bg-secondary hover:bg-secondary/90 text-white font-semibold px-8 py-3 rounded-lg transition-all transform hover:scale-105 shadow-lg hover:shadow-xl text-center w-full sm:w-auto">
+                            <i class="fa fa-book mr-2"></i>配套书籍演示页面
+                        </a>
+                    </div>
                     <!-- 小程序链接复制提示 -->
-                    <div id="copy-tip" class="mt-4 hidden bg-green-100 text-green-800 px-4 py-2 rounded-lg flex items-center">
+                    <div id="copy-tip" class="mt-4 hidden bg-green-100 text-green-800 px-4 py-2 rounded-lg flex items-center md:justify-center justify-center">
                         <i class="fa fa-check-circle mr-2"></i>
                         <span>小程序链接已复制：小程序://学生端-月峰听说/oznbLyP7lLkdHwf</span>
                     </div>
@@ -159,10 +170,9 @@
                 
                 <!-- 小程序3D展示（匹配真实界面） -->
                 <div class="md:w-1/2 perspective-1000">
-                    <a href="">
                     <div id="weapp-3d" class="w-full h-[400px] md:h-[500px] mx-auto">
                         <!-- Three.js 3D小程序演示 -->
-                    </a></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -188,7 +198,7 @@
                     <div class="relative w-full h-[400px] md:h-[500px]">
                         <!-- 小程序卡片立体展示 -->
                         <div class="absolute inset-0 bg-white rounded-2xl shadow-2xl transform transition-transform duration-700 hover:scale-[1.02] preserve-3d" style="transform: rotateY(5deg) rotateX(3deg);">
-                            <img src="https://github.com/WangK1628/YueFeng/tree/main/img/index.html" alt="月峰听说小程序" class="w-full h-full object-cover rounded-2xl">
+                            <img src="https://picsum.photos/id/48/800/1000" alt="月峰听说小程序" class="w-full h-full object-cover rounded-2xl">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-2xl"></div>
                         </div>
                         <!-- 立体阴影效果 -->
@@ -1144,7 +1154,7 @@
                 
                 // 小程序界面截图
                 const screenImg = document.createElement('img');
-                screenImg.src = 'https://wangk1628.github.io/YueFeng/%E4%B9%A6%E7%B1%8D3D.html';
+                screenImg.src = 'https://picsum.photos/id/48/400/800';
                 screenImg.alt = '月峰听说小程序界面';
                 screenImg.className = 'w-full h-full object-cover';
                 screen.appendChild(screenImg);
@@ -1181,5 +1191,4 @@
         });
     </script>
 </body>
-
 </html>
