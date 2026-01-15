@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>湖北省中考英语听说 - 融媒体卡3D展示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0066CC',
+                        accent: '#F97316',
+                    },
+                    fontFamily: {
+                        sans: ['PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+                    },
+                    perspective: {
+                        '1500': '1500px',
+                    },
+                    backfaceVisibility: {
+                        'hidden': 'hidden',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .preserve-3d {
+                transform-style: preserve-3d;
+            }
+            .backface-hidden {
+                backface-visibility: hidden;
+            }
+            .book-3d-hover {
+                transition: transform 0.8s ease;
+            }
+            .rotate-y-180 {
+                transform: rotateY(180deg);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow-x: hidden;
+            background-color: #f5f7f5;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        /* 导航栏 */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0066CC;
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            margin-left: 0.8rem;
+        }
+
+        .btn-book {
+            background-color: #0066CC;
+        }
+
+        .btn-book:hover {
+            background-color: #0052A3;
+        }
+
+        .btn-expand {
+            background-color: #F97316;
+        }
+
+        .btn-expand:hover {
+            background-color: #EA580C;
+        }
+
+        /* 核心容器：居中承载 */
+        .core-container {
+            width: 100%;
+            max-width: 500px;
+            height: 800px;
+            margin: 6rem auto 3rem;
+            cursor: grab;
+            user-select: none;
+            position: relative;
+        }
+
+        /* ========== 展开态：完全保留原有代码 ========== */
+        .expand-container {
+            width: 300%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s ease;
+            transform: translateX(-50%) scale(0.7);
+            display: none;
+        }
+
+        .expand-stick {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .expand-front-group {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotateY(0deg) translateZ(0.5px);
+            z-index: 1;
+        }
+
+        .expand-back-group {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: rotateY(180deg) translateZ(0.5px);
+            z-index: 1;
+        }
+
+        .expand-panel {
+            position: absolute;
+            top: 0;
+            width: 33.3333%;
+            height: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .panel-left { left: 0; }
+        .panel-middle { left: 33.3333%; }
+        .panel-right { left: 66.6666%; }
+
+        /* 通用图片样式 */
+        .page-img, .book-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            border: none;
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .core-container {
+                max-width: 320px;
+                height: 500px;
+            }
+            .expand-container { transform: translateX(-50%) scale(0.6); }
+            .nav-container { flex-direction: column; gap: 0.8rem; }
+        }
+
+        @media (max-width: 480px) {
+            .core-container {
+                max-width: 260px;
+                height: 420px;
+            }
+            .expand-container { transform: translateX(-50%) scale(0.5); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-container">
+            <div class="nav-title">英语听说融媒体卡3D书籍态</div>
+            <div class="btn-group">
+                <button id="btn-book" class="btn btn-book">
+                    <i class="fa fa-book mr-1"></i>3D书籍态
+                </button>
+                <button id="btn-expand" class="btn btn-expand">
+                    <i class="fa fa-expand mr-1"></i>展开态（234↔561）
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="core-container" id="core-container">
+        <!-- ========== 严格按你指定的DOM结构实现书籍态（仅封面+封底图片） ========== -->
+        <div class="flex justify-center perspective-1500" id="book-container">
+            <div class="w-full max-w-xs h-[500px] cursor-grab active:cursor-grabbing">
+                <div id="book-3d" class="w-full h-full preserve-3d book-3d-hover relative" style="transform: rotateY(20deg);">
+                    <!-- 书籍封面：仅图片 -->
+                    <div class="absolute inset-0 backface-hidden rounded-lg shadow-xl overflow-hidden">
+                        <img 
+                            src="./img/brochue1.png" 
+                            alt="书籍封面" 
+                            class="book-img"
+                        >
+                    </div>
+                    <!-- 书籍封底：仅图片（默认隐藏，旋转后显示） -->
+                    <div id="book-back" class="absolute inset-0 backface-hidden rotate-y-180 rounded-lg shadow-xl overflow-hidden">
+                        <img 
+                            src="./img/brochue6.png" 
+                            alt="书籍封底" 
+                            class="book-img"
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 展开态：完全保留原有代码 ========== -->
+        <div class="expand-container" id="expand-container">
+            <div class="expand-stick">
+                <div class="expand-front-group">
+                    <div class="expand-panel panel-left">
+                        <img src="./img/brochue2.png" alt="页2-产品介绍" class="page-img">
+                    </div>
+                    <div class="expand-panel panel-middle">
+                        <img src="./img/brochue3.png" alt="页3-功能模块" class="page-img">
+                    </div>
+                    <div class="expand-panel panel-right">
+                        <img src="./img/brochue4.png" alt="页4-产品优势" class="page-img">
+                    </div>
+                </div>
+
+                <div class="expand-back-group">
+                    <div class="expand-panel panel-left">
+                        <img src="./img/brochue5.png" alt="页5-操作指南" class="page-img">
+                    </div>
+                    <div class="expand-panel panel-middle">
+                        <img src="./img/code.png" alt="页6-激活码" class="page-img">
+                    </div>
+                    <div class="expand-panel panel-right">
+                        <img src="./img/brochue1.png" alt="页1-封面" class="page-img">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2026 英语听说融媒体卡3D书籍态 - 王可文 版权所有</p>
+    </footer>
+
+    <script>
+        // ========== 核心交互逻辑（仅适配指定DOM结构，无多余改动） ==========
+        // 获取核心元素
+        const coreContainer = document.getElementById('core-container');
+        const bookContainer = document.getElementById('book-container');
+        const book3d = document.getElementById('book-3d');
+        const bookBack = document.getElementById('book-back');
+        const expandContainer = document.getElementById('expand-container');
+        const btnBook = document.getElementById('btn-book');
+        const btnExpand = document.getElementById('btn-expand');
+
+        // 全局状态变量
+        let isBookState = true;
+        let isDragging = false;
+        let startX = 0;
+        let currentRotateY = 20; // 初始旋转角度
+        let hasRotated = false;  // 标记是否旋转（用于显示封底）
+
+        // 初始化：展开态默认隐藏
+        expandContainer.style.display = 'none';
+
+        // 切换到书籍态
+        btnBook.addEventListener('click', () => {
+            if (!isBookState) {
+                isBookState = true;
+                bookContainer.style.display = 'flex';       // 显示书籍态
+                expandContainer.style.display = 'none';     // 隐藏展开态
+                // 重置旋转角度和封底显示状态
+                currentRotateY = 20;
+                hasRotated = false;
+                book3d.style.transform = `rotateY(${currentRotateY}deg)`;
+                bookBack.style.zIndex = ''; // 重置封底z-index（隐藏）
+            }
+        });
+
+        // 切换到展开态
+        btnExpand.addEventListener('click', () => {
+            if (isBookState) {
+                isBookState = false;
+                bookContainer.style.display = 'none';       // 隐藏书籍态
+                expandContainer.style.display = 'block';    // 显示展开态
+                currentRotateY = 0;
+                expandContainer.style.transform = `translateX(-50%) scale(0.7) rotateY(${currentRotateY}deg)`;
+            }
+        });
+
+        // 拖拽开始：记录起始位置
+        coreContainer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            coreContainer.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        // 拖拽移动：处理旋转逻辑
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            // 计算鼠标移动差值
+            const deltaX = e.clientX - startX;
+            startX = e.clientX;
+
+            if (isBookState) {
+                // 书籍态旋转逻辑（低速）
+                currentRotateY += deltaX * 0.5;
+                book3d.style.transform = `rotateY(${currentRotateY}deg)`;
+
+                // 旋转超过45°时，显示封底（添加z-index）
+                if (!hasRotated && Math.abs(currentRotateY) > 45) {
+                    hasRotated = true;
+                    bookBack.style.zIndex = '10'; // 显示封底
+                }
+            } else {
+                // 展开态旋转逻辑（保留原有）
+                currentRotateY += deltaX * 0.8;
+                expandContainer.style.transform = `translateX(-50%) scale(0.7) rotateY(${currentRotateY}deg)`;
+            }
+        });
+
+        // 拖拽结束：恢复状态
+        window.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                coreContainer.style.cursor = 'grab';
+            }
+        });
+
+        // 鼠标离开窗口：恢复拖拽状态
+        window.addEventListener('mouseleave', () => {
+            if (isDragging) {
+                isDragging = false;
+                coreContainer.style.cursor = 'grab';
+            }
+        });
+
+        // 页面加载完成初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            coreContainer.style.cursor = 'grab';
+            bookBack.style.zIndex = ''; // 确保封底默认隐藏
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>湖北省中考英语听说 - 书籍3D展示</title>
+    <!-- 外部资源引入 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.11.4/dist/gsap.min.js"></script>
+    
+    <!-- Tailwind 自定义配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4CAF50',
+                        secondary: '#81C784',
+                        dark: '#2E7D32',
+                        light: '#F1F8E9'
+                    },
+                    fontFamily: {
+                        sans: ['PingFang SC', 'Microsoft YaHei', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            /* 3D相关自定义样式 */
+            .perspective-1500 { perspective: 1500px; }
+            .preserve-3d { transform-style: preserve-3d; }
+            .backface-hidden { backface-visibility: hidden; }
+            .rotate-y-180 { transform: rotateY(180deg); }
+            .book-3d-hover { transition: transform 0.7s ease; }
+            .book-3d-hover:hover { transform: rotateY(15deg) rotateX(5deg) scale(1.02); }
+        }
+    </style>
+</head>
+<body class="bg-light text-dark overflow-x-hidden font-sans">
+    <!-- 导航栏 -->
+    <nav id="navbar" class="fixed w-full z-50 bg-transparent transition-all duration-300">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-2">
+                <i class="fa fa-book text-primary text-2xl"></i>
+                <span class="font-bold text-xl text-primary">中考英语听说训练</span>
+            </a>
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#book-3d" class="hover:text-primary transition-colors">书籍3D展示</a>
+                <a href="#features" class="hover:text-primary transition-colors">核心内容</a>
+                <a href="#purchase" class="hover:text-primary transition-colors">购买入口</a>
+            </div>
+            <!-- 移动端菜单按钮 -->
+            <button id="menu-toggle" class="md:hidden text-dark hover:text-primary">
+                <i class="fa fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg absolute w-full">
+            <div class="container mx-auto px-4 py-3 flex flex-col gap-3">
+                <a href="#book-3d" class="py-2 hover:text-primary">书籍3D展示</a>
+                <a href="#features" class="py-2 hover:text-primary">核心内容</a>
+                <a href="#purchase" class="py-2 hover:text-primary">购买入口</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 书籍3D核心展示区 -->
+    <section id="book-3d" class="pt-32 pb-20">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold mb-4">书籍3D立体页面展示</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">鼠标拖拽可360°旋转，查看书籍封面、内页、封底完整细节</p>
+            </div>
+
+            <!-- 3D书籍容器 -->
+            <div class="flex justify-center perspective-1500">
+                <div id="book-container" class="w-full max-w-xs h-[500px] cursor-grab active:cursor-grabbing">
+                    <div class="w-full h-full preserve-3d book-3d-hover relative" style="transform: rotateY(20deg) rotateX(5deg);">
+                        <!-- 书籍封面 -->
+                        <div class="absolute inset-0 backface-hidden rounded-lg shadow-xl overflow-hidden">
+                            <img 
+                                src="./img/manner.png" 
+                                alt="书籍封面" 
+                                class="w-full h-full object-cover"
+                            >
+                        </div>
+                        <!-- 书籍封底 -->
+                        <div class="absolute inset-0 backface-hidden rotate-y-180 rounded-lg shadow-xl bg-white p-6">
+                            <div class="h-full flex flex-col">
+                                <h3 class="font-bold text-xl text-primary mb-4">内容简介</h3>
+                                <p class="text-gray-600 text-sm mb-4 flex-1">
+                                    本书专为湖北省九年级学生设计，覆盖中考英语听说考试全部题型，配套智能小程序提供AI评测、同步训练、全真模考等功能，帮助学生高效提升听说能力。
+                                </p>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-500">编著</span>
+                                        <span>中考英语听说编写组</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-500">出版社</span>
+                                        <span>长江出版社</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-500">ISBN</span>
+                                        <span>9787580406163</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 书籍书脊 -->
+                        <div 
+                            class="absolute left-0 top-0 w-6 h-full bg-primary preserve-3d flex items-center justify-center"
+                            style="transform: rotateY(-90deg) translateZ(6px); transform-origin: left center;"
+                        >
+                            <div class="text-white writing-vertical-lr font-bold text-sm">
+                                湖北省中考英语听说测评指导与训练
+                            </div>
+                        </div>
+                        <!-- 书籍底部 -->
+                        <div 
+                            class="absolute left-0 bottom-0 h-6 w-full bg-primary/80 preserve-3d"
+                            style="transform: rotateX(90deg) translateZ(6px); transform-origin: bottom center;"
+                        ></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 核心内容区 -->
+    <section id="features" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-[clamp(1.8rem,3vw,2.5rem)] font-bold mb-4">核心内容</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">书籍+小程序组合，覆盖"学-练-测-评"全流程</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-light rounded-xl shadow-sm p-6 hover:shadow-md transition-all">
+                    <div class="w-14 h-14 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary">
+                        <i class="fa fa-microphone text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-3">AI智能评测</h3>
+                    <p class="text-gray-600">
+                        中高考同源评分引擎，从发音、语调、流利度多维度精准评分，提供专业改进建议。
+                    </p>
+                </div>
+                <div class="bg-light rounded-xl shadow-sm p-6 hover:shadow-md transition-all">
+                    <div class="w-14 h-14 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary">
+                        <i class="fa fa-book text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-3">教材同步训练</h3>
+                    <p class="text-gray-600">
+                        严格匹配湖北省九年级教材，每单元配套听说训练，课堂学习与课后巩固无缝衔接。
+                    </p>
+                </div>
+                <div class="bg-light rounded-xl shadow-sm p-6 hover:shadow-md transition-all">
+                    <div class="w-14 h-14 bg-primary/10 rounded-lg flex items-center justify-center mb-6 text-primary">
+                        <i class="fa fa-file-text-o text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-xl mb-3">全真模考体验</h3>
+                    <p class="text-gray-600">
+                        还原中考听说考试流程与界面，提前适应考试节奏，提升应试能力。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 购买入口 -->
+    <section id="purchase" class="py-16 bg-gradient-to-br from-primary to-dark text-white">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-[clamp(2rem,4vw,3rem)] font-bold mb-6">立即购买 开启提分之旅</h2>
+            <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+                实体书籍+小程序全年使用权，仅需88元，助力中考听说高效提分
+            </p>
+            <a href="./月峰听说2.html" class="bg-white text-primary hover:bg-gray-100 font-bold px-8 py-4 rounded-lg transition-all hover:scale-105 shadow-lg text-lg inline-block">
+                立即购买 ¥88
+            </a>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2026 英语听说配套教材3D书籍态 - 王可文 版权所有</p>
+            <p class="text-white-500 mt-2">联系电话：19963994746 | 鄂ICP备XXXXXXXX号</p>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="fixed bottom-8 right-8 bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all z-50">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript 交互逻辑 -->
+    <script>
+        // 1. 导航栏滚动效果
+        const navbar = document.getElementById('navbar');
+        const backToTop = document.getElementById('back-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                navbar.classList.add('bg-white', 'shadow-md');
+                navbar.classList.remove('bg-transparent');
+                backToTop.classList.remove('opacity-0', 'invisible');
+                backToTop.classList.add('opacity-100', 'visible');
+            } else {
+                navbar.classList.remove('bg-white', 'shadow-md');
+                navbar.classList.add('bg-transparent');
+                backToTop.classList.add('opacity-0', 'invisible');
+                backToTop.classList.remove('opacity-100', 'visible');
+            }
+        });
+
+        // 2. 移动端菜单切换
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuToggle.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+        // 3. 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    mobileMenu.classList.add('hidden'); // 点击后关闭移动端菜单
+                }
+            });
+        });
+
+        // 4. 返回顶部
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // 5. 书籍3D拖拽旋转交互
+        const bookContainer = document.getElementById('book-container');
+        let isDragging = false;
+        let startX, startY;
+        let rotX = 5, rotY = 20;
+
+        if (bookContainer) {
+            // 鼠标按下
+            bookContainer.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                bookContainer.style.cursor = 'grabbing';
+            });
+
+            // 鼠标移动
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                rotY += deltaX * 0.5;
+                rotX -= deltaY * 0.5;
+                rotX = Math.max(-30, Math.min(30, rotX)); // 限制上下旋转角度
+                bookContainer.querySelector('.preserve-3d').style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+                startX = e.clientX;
+                startY = e.clientY;
+            });
+
+            // 鼠标松开
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    bookContainer.style.cursor = 'grab';
+                }
+            });
+
+            bookContainer.style.cursor = 'grab'; // 初始光标样式
+        }
+    </script>
+</body>
+</html>
