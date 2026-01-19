@@ -271,13 +271,13 @@
                 <!-- 页1：正面组 - 优先渲染，默认可见（即使添加页6src也不会被覆盖） -->
                 <div class="book-front-group">
                     <div class="book-panel">
-                        <img src="./img/brochue1.png" alt="页1-封面" class="page-img">
+                        <img src="../img/brochue1.png" alt="页1-封面" class="page-img">
                     </div>
                 </div>
                 <!-- 页6：背面组 - 翻转后可见，不覆盖默认页1 -->
                 <div class="book-back-group">
                     <div class="book-panel">
-                        <img src="./img/brochue6.png" alt="页6-激活码" class="page-img">
+                        <img src="../img/brochue6.png" alt="页6-激活码" class="page-img">
                     </div>
                 </div>
             </div>
@@ -288,25 +288,25 @@
             <div class="expand-stick">
                 <div class="expand-front-group">
                     <div class="expand-panel panel-left">
-                        <img src="./img/brochue2.png" alt="页2-产品介绍" class="page-img">
+                        <img src="../img/brochue2.png" alt="页2-产品介绍" class="page-img">
                     </div>
                     <div class="expand-panel panel-middle">
-                        <img src="./img/brochue3.png" alt="页3-功能模块" class="page-img">
+                        <img src="../img/brochue3.png" alt="页3-功能模块" class="page-img">
                     </div>
                     <div class="expand-panel panel-right">
-                        <img src="./img/brochue4.png" alt="页4-产品优势" class="page-img">
+                        <img src="../img/brochue4.png" alt="页4-产品优势" class="page-img">
                     </div>
                 </div>
 
                 <div class="expand-back-group">
                     <div class="expand-panel panel-left">
-                        <img src="./img/brochue5.png" alt="页5-操作指南" class="page-img">
+                        <img src="../img/brochue5.png" alt="页5-操作指南" class="page-img">
                     </div>
                     <div class="expand-panel panel-middle">
-                        <img src="./img/code.png" alt="页6-激活码" class="page-img">
+                        <img src="../img/code.png" alt="页6-激活码" class="page-img">
                     </div>
                     <div class="expand-panel panel-right">
-                        <img src="./img/brochue1.png" alt="页1-封面" class="page-img">
+                        <img src="../img/brochue1.png" alt="页1-封面" class="page-img">
                     </div>
                 </div>
             </div>
@@ -318,88 +318,97 @@
     </footer>
 
     <script>
-        const coreContainer = document.getElementById('core-container');
-        const bookContainer = document.getElementById('book-container');
-        const expandContainer = document.getElementById('expand-container');
-        const btnBook = document.getElementById('btn-book');
-        const btnExpand = document.getElementById('btn-expand');
-        const nav = document.getElementById('nav'); // 新增：获取导航栏元素
+    const coreContainer = document.getElementById('core-container');
+    const bookContainer = document.getElementById('book-container');
+    const expandContainer = document.getElementById('expand-container');
+    const btnBook = document.getElementById('btn-book');
+    const btnExpand = document.getElementById('btn-expand');
+    const nav = document.getElementById('nav');
 
-        let isBookState = true;
-        let isDragging = false;
-        let startX = 0;
-        let currentRotate = 0;
+    let isBookState = true;
+    let isDragging = false;
+    let startX = 0;
+    let currentRotate = 0;
 
-        // 切换书籍态
-        btnBook.addEventListener('click', () => {
-            if (!isBookState) {
-                isBookState = true;
-                bookContainer.style.display = 'block';
-                expandContainer.style.display = 'none';
-                currentRotate = 0;
-                bookContainer.style.transform = `rotateY(${currentRotate}deg)`;
-            }
-        });
+    // 切换书籍态
+    btnBook.addEventListener('click', () => {
+        if (!isBookState) {
+            isBookState = true;
+            bookContainer.style.display = 'block';
+            expandContainer.style.display = 'none';
+            currentRotate = 0;
+            bookContainer.style.transform = `rotateY(${currentRotate}deg)`;
+        }
+    });
 
-        // 切换展开态
-        btnExpand.addEventListener('click', () => {
-            if (isBookState) {
-                isBookState = false;
-                bookContainer.style.display = 'none';
-                expandContainer.style.display = 'block';
-                currentRotate = 0;
-                expandContainer.style.transform = `translateX(-50%) scale(0.7) rotateY(${currentRotate}deg)`;
-            }
-        });
+    // 切换展开态
+    btnExpand.addEventListener('click', () => {
+        if (isBookState) {
+            isBookState = false;
+            bookContainer.style.display = 'none';
+            expandContainer.style.display = 'block';
+            currentRotate = 0;
+            expandContainer.style.transform = `translateX(-50%) scale(0.7) rotateY(${currentRotate}deg)`;
+        }
+    });
 
-        // 拖拽旋转：低速低灵敏度
-        coreContainer.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX;
-            coreContainer.style.cursor = 'grabbing';
-            nav.classList.add('hidden'); // 新增：开始拖拽时隐藏导航栏
-            e.preventDefault();
-        });
+    // 鼠标事件 - 桌面端
+    coreContainer.addEventListener('mousedown', startDrag);
+    window.addEventListener('mousemove', drag);
+    window.addEventListener('mouseup', endDrag);
+    window.addEventListener('mouseleave', endDrag);
 
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
+    // 触摸事件 - 移动端（修复：补充touchcancel事件 + 强化passive配置）
+    coreContainer.addEventListener('touchstart', startDrag, { passive: false });
+    window.addEventListener('touchmove', drag, { passive: false });
+    window.addEventListener('touchend', endDrag);
+    window.addEventListener('touchcancel', endDrag); // 新增：处理触摸中断场景
 
-            const deltaX = e.clientX - startX;
-            const sensitivity = isBookState ? 1.2 : 0.8;
-            currentRotate += deltaX * sensitivity;
+    function startDrag(e) {
+        isDragging = true;
+        // 区分鼠标和触摸事件获取起始X坐标
+        startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        coreContainer.style.cursor = 'grabbing';
+        nav.classList.add('hidden');
+        e.preventDefault();
+    }
 
-            if (isBookState) {
-                bookContainer.style.transform = `rotateY(${currentRotate}deg)`;
-            } else {
-                expandContainer.style.transform = `translateX(-50%) scale(0.7) rotateY(${currentRotate}deg)`;
-            }
+    function drag(e) {
+        if (!isDragging) return;
+        
+        // 区分鼠标和触摸事件获取当前X坐标
+        const currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+        const deltaX = currentX - startX;
+        const sensitivity = isBookState ? 1.2 : 0.8;
+        currentRotate += deltaX * sensitivity;
 
-            startX = e.clientX;
-        });
+        if (isBookState) {
+            bookContainer.style.transform = `rotateY(${currentRotate}deg)`;
+        } else {
+            expandContainer.style.transform = `translateX(-50%) scale(0.7) rotateY(${currentRotate}deg)`;
+        }
 
-        // 停止拖拽时显示导航栏
-        window.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                coreContainer.style.cursor = 'grab';
-                nav.classList.remove('hidden'); // 新增：停止拖拽显示导航栏
-            }
-        });
-        window.addEventListener('mouseleave', () => {
-            if (isDragging) {
-                isDragging = false;
-                coreContainer.style.cursor = 'grab';
-                nav.classList.remove('hidden'); // 新增：鼠标离开显示导航栏
-            }
-        });
+        startX = currentX;
+        e.preventDefault();
+    }
 
-        // 初始化：页1默认可见
-        window.addEventListener('DOMContentLoaded', () => {
+    function endDrag() {
+        if (isDragging) {
+            isDragging = false;
             coreContainer.style.cursor = 'grab';
-            bookContainer.style.transform = `rotateY(0deg)`;
-            expandContainer.style.transform = `translateX(-50%) scale(0.7) rotateY(0deg)`;
-        });
-    </script>
+            nav.classList.remove('hidden');
+        }
+    }
+
+    // 初始化（修复：新增touchAction禁用默认触摸行为）
+    window.addEventListener('DOMContentLoaded', () => {
+        coreContainer.style.cursor = 'grab';
+        bookContainer.style.transform = `rotateY(0deg)`;
+        expandContainer.style.transform = `translateX(-50%) scale(0.7) rotateY(0deg)`;
+        // 关键修复：禁用核心容器默认触摸行为，确保拖拽优先
+        coreContainer.style.touchAction = 'none';
+    });
+</script>
 </body>
 
 </html>
