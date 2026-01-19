@@ -124,7 +124,7 @@
                         <!-- 书籍底部 -->
                         <div 
                             class="absolute left-0 bottom-0 h-6 w-full bg-primary/80 preserve-3d"
-                            style="transform: rotateX(90deg) translateY(25px) translateZ(0px); transform-origin: bottom center;"
+                            style="transform: rotateX(90deg)  translateY(25px) translateZ(0px); transform-origin: bottom center;"
                         ></div>
                     </div>
                 </div>
@@ -241,7 +241,7 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        // 5. 书籍3D拖拽旋转交互
+        // 5. 书籍3D拖拽旋转交互（修复了移动端支持）
         const bookContainer = document.getElementById('book-container');
         let isDragging = false;
         let startX, startY;
@@ -249,15 +249,47 @@
 
         if (bookContainer) {
             // 鼠标按下
-            bookContainer.addEventListener('mousedown', (e) => {
+            bookContainer.addEventListener('mousedown', startDrag);
+            
+            // 触摸开始
+            bookContainer.addEventListener('touchstart', (e) => {
+                e.preventDefault(); // 防止触摸事件的默认行为
+                startDrag({
+                    clientX: e.touches[0].clientX,
+                    clientY: e.touches[0].clientY
+                });
+            });
+
+            // 鼠标移动
+            window.addEventListener('mousemove', handleDrag);
+            
+            // 触摸移动
+            window.addEventListener('touchmove', (e) => {
+                e.preventDefault(); // 防止页面滚动
+                handleDrag({
+                    clientX: e.touches[0].clientX,
+                    clientY: e.touches[0].clientY
+                });
+            });
+
+            // 鼠标松开
+            window.addEventListener('mouseup', endDrag);
+            
+            // 触摸结束
+            window.addEventListener('touchend', endDrag);
+
+            bookContainer.style.cursor = 'grab'; // 初始光标样式
+
+            // 开始拖拽
+            function startDrag(e) {
                 isDragging = true;
                 startX = e.clientX;
                 startY = e.clientY;
                 bookContainer.style.cursor = 'grabbing';
-            });
+            }
 
-            // 鼠标移动
-            window.addEventListener('mousemove', (e) => {
+            // 处理拖拽
+            function handleDrag(e) {
                 if (!isDragging) return;
                 const deltaX = e.clientX - startX;
                 const deltaY = e.clientY - startY;
@@ -267,21 +299,17 @@
                 bookContainer.querySelector('.preserve-3d').style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
                 startX = e.clientX;
                 startY = e.clientY;
-            });
+            }
 
-            // 鼠标松开
-            window.addEventListener('mouseup', () => {
+            // 结束拖拽
+            function endDrag() {
                 if (isDragging) {
                     isDragging = false;
                     bookContainer.style.cursor = 'grab';
                 }
-            });
-
-            bookContainer.style.cursor = 'grab'; // 初始光标样式
+            }
         }
     </script>
 </body>
 
 </html>
-
-
