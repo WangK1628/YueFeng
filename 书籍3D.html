@@ -87,6 +87,7 @@
                                 src="./img/manner.png" 
                                 alt="书籍封面" 
                                 class="w-full h-full object-cover"
+                                onerror="this.src='https://via.placeholder.com/400x600?text=封面图片'"
                             >
                         </div>
                         <!-- 书籍封底 -->
@@ -107,7 +108,7 @@
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="text-gray-500">ISBN</span>
-                                        <span>9787580406163</span>
+                                        <span>978758040xxxx</span>
                                     </div>
                                 </div>
                             </div>
@@ -188,7 +189,7 @@
     <footer class="bg-dark text-white py-12">
         <div class="container mx-auto px-4 text-center">
             <p>© 2026 英语听说配套教材3D书籍态 - 王可文 版权所有</p>
-            <p class="text-white-500 mt-2">联系电话：19963994746 | 鄂ICP备XXXXXXXX号</p>
+            <p class="text-white/50 mt-2">联系电话：19963994746 | 鄂ICP备XXXXXXXX号</p>
         </div>
     </footer>
 
@@ -225,7 +226,8 @@
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
+                const targetId = this.getAttribute('href');
+                const target = document.querySelector(targetId);
                 if (target) {
                     window.scrollTo({
                         top: target.offsetTop - 80,
@@ -246,8 +248,9 @@
         let isDragging = false;
         let startX, startY;
         let rotX = 5, rotY = 20;
+        const bookElement = bookContainer ? bookContainer.querySelector('.preserve-3d') : null;
 
-        if (bookContainer) {
+        if (bookContainer && bookElement) {
             // 鼠标按下
             bookContainer.addEventListener('mousedown', startDrag);
             
@@ -258,25 +261,28 @@
                     clientX: e.touches[0].clientX,
                     clientY: e.touches[0].clientY
                 });
-            });
+            }, { passive: false });
 
             // 鼠标移动
             window.addEventListener('mousemove', handleDrag);
             
             // 触摸移动
             window.addEventListener('touchmove', (e) => {
-                e.preventDefault(); // 防止页面滚动
-                handleDrag({
-                    clientX: e.touches[0].clientX,
-                    clientY: e.touches[0].clientY
-                });
-            });
+                if (isDragging) {
+                    e.preventDefault(); // 防止页面滚动
+                    handleDrag({
+                        clientX: e.touches[0].clientX,
+                        clientY: e.touches[0].clientY
+                    });
+                }
+            }, { passive: false });
 
             // 鼠标松开
             window.addEventListener('mouseup', endDrag);
             
             // 触摸结束
             window.addEventListener('touchend', endDrag);
+            window.addEventListener('touchcancel', endDrag); // 处理触摸被中断的情况
 
             bookContainer.style.cursor = 'grab'; // 初始光标样式
 
@@ -296,7 +302,7 @@
                 rotY += deltaX * 0.5;
                 rotX -= deltaY * 0.5;
                 rotX = Math.max(-30, Math.min(30, rotX)); // 限制上下旋转角度
-                bookContainer.querySelector('.preserve-3d').style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+                bookElement.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
                 startX = e.clientX;
                 startY = e.clientY;
             }
