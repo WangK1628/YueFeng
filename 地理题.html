@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地理离谱单选题答题挑战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box; /* 修复空格 */
+            font-family: 'Microsoft YaHei', 'Heiti SC', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%); /* 修复空格 */
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            position: relative;
+        }
+        /* 顶部装饰渐变 */
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #4361ee, #7209b7, #f72585); /* 修复空格 */
+        }
+        .header {
+            background: linear-gradient(90deg, #4361ee 0%, #3a0ca3 100%); /* 修复空格 */
+            color: #fff;
+            padding: 30px 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        /* 头部装饰光点 */
+        .header::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+            font-weight: 700;
+        }
+        .header p {
+            font-size: 16px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+        .tab-container {
+            display: flex;
+            overflow-x: auto;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            scrollbar-width: none;
+            padding: 0 10px;
+        }
+        .tab-container::-webkit-scrollbar { /* 修复空格 */
+            display: none;
+        }
+        .tab {
+            padding: 18px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 4px solid transparent;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .tab.active {
+            color: #4361ee;
+            border-bottom-color: #4361ee;
+            background: rgba(67, 97, 238, 0.04);
+        }
+        .tab:hover {
+            color: #3a0ca3;
+            background: rgba(67, 97, 238, 0.02);
+            transform: translateY(-1px);
+        }
+        .quiz-content {
+            padding: 40px;
+            display: none;
+        }
+        .quiz-content.active {
+            display: block;
+            animation: fadeIn 0.6s ease;
+        }
+        @keyframes fadeIn { /* 修复空格 */
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .question-item {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border: 1px solid #f1f5f9;
+        }
+        .question-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+        .question-title {
+            font-size: 20px;
+            color: #1e293b;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            display: flex;
+            align-items: flex-start;
+            font-weight: 600;
+        }
+        .question-title::before {
+            content: "";
+            display: inline-block;
+            width: 5px;
+            height: 24px;
+            background: linear-gradient(180deg, #4361ee, #7209b7); /* 修复空格 */
+            border-radius: 3px;
+            margin-right: 15px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .option {
+            padding: 16px 20px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        .option:hover {
+            border-color: #4361ee;
+            background: rgba(67, 97, 238, 0.06);
+            transform: translateX(3px);
+        }
+        .option.selected {
+            border-color: #4361ee;
+            background: rgba(67, 97, 238, 0.12);
+            color: #4361ee;
+            font-weight: 600;
+        }
+        /* 新增：错误选项样式 */
+        .option.wrong {
+            border-color: #ed64a6;
+            background: rgba(237, 100, 166, 0.12);
+            color: #ed64a6;
+            font-weight: 600;
+        }
+        .option.selected::after,
+        .option.wrong::after {
+            content: "✓";
+            margin-left: auto;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        /* 新增：错误选项的对勾颜色 */
+        .option.wrong::after {
+            content: "✕";
+            color: #ed64a6;
+        }
+        .answer-btn {
+            padding: 14px 30px;
+            background: linear-gradient(90deg, #4361ee, #3a0ca3); /* 修复空格 */
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.2);
+        }
+        .answer-btn:hover {
+            background: linear-gradient(90deg, #3a0ca3, #7209b7); /* 修复空格 */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.3);
+        }
+        .answer-btn:disabled {
+            background: #cbd5e1;
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .answer-result {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 12px;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .correct {
+            background: rgba(72, 187, 120, 0.1);
+            border-left: 5px solid #48bb78;
+        }
+        .incorrect {
+            background: rgba(237, 100, 166, 0.1);
+            border-left: 5px solid #ed64a6;
+        }
+        .answer-result h4 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        .correct h4 {
+            color: #2f9e69;
+        }
+        .incorrect h4 {
+            color: #d63384;
+        }
+        .answer-result p {
+            font-size: 16px;
+            color: #475569;
+            line-height: 1.7;
+        }
+        .analysis {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #e2e8f0;
+            font-size: 15px;
+            color: #64748b;
+            line-height: 1.7;
+        }
+        .page-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .page-btn {
+            padding: 12px 24px;
+            background: #fff;
+            border: 2px solid #4361ee;
+            border-radius: 10px;
+            color: #4361ee;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .page-btn:hover {
+            background: #4361ee;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+        }
+        .page-btn:disabled {
+            border-color: #e2e8f0;
+            color: #94a3b8;
+            background: #f8fafc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .page-info {
+            font-size: 16px;
+            color: #334155;
+            font-weight: 600;
+            background: #f1f5f9;
+            padding: 8px 20px;
+            border-radius: 20px;
+        }
+        /* 响应式设计 */
+        @media(max-width: 768px) {
+            .header h1 {
+                font-size: 26px;
+            }
+            .tab {
+                padding: 14px 20px;
+                font-size: 14px;
+            }
+            .quiz-content {
+                padding: 24px 20px;
+            }
+            .question-title {
+                font-size: 18px;
+            }
+            .option {
+                font-size: 15px;
+                padding: 14px 16px;
+            }
+            .answer-btn,
+            .page-btn {
+                font-size: 15px;
+                padding: 12px 20px;
+            }
+            .page-info {
+                font-size: 14px;
+                padding: 6px 16px;
+            }
+            .question-item {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>地理离谱单选题答题挑战</h1>
+            <p>点击选项作答，提交后查看答案及解析</p>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab active" data-tab="plant">自然地理·植物篇</div>
+            <div class="tab" data-tab="animal">自然地理·动物篇</div>
+            <div class="tab" data-tab="climate">自然地理·气候地貌篇</div>
+            <div class="tab" data-tab="city">人文地理·城市交通篇</div>
+            <div class="tab" data-tab="food">人文地理·饮食农业篇</div>
+            <div class="tab" data-tab="custom">人文地理·民俗区域篇</div>
+        </div>
+
+        <!--通用答题容器，动态渲染内容-->
+        <div class="quiz-content active" id="plant">
+            <div class="question-list" id="plant-list"></div>
+            <div class="page-nav">
+                <button class="page-btn" id="prev-plant" disabled>← 上一题</button>
+                <span class="page-info" id="page-plant">第 1 / 10 题</span>
+                <button class="page-btn" id="next-plant">下一题 →</button>
+            </div>
+        </div>
+
+        <div class="quiz-content" id="animal">
+            <div class="question-list" id="animal-list"></div>
+            <div class="page-nav">
+                <button class="page-btn" id="prev-animal" disabled>← 上一题</button>
+                <span class="page-info" id="page-animal">第 1 / 15 题</span>
+                <button class="page-btn" id="next-animal">下一题 →</button>
+            </div>
+        </div>
+
+        <div class="quiz-content" id="climate">
+            <div class="question-list" id="climate-list"></div>
+            <div class="page-nav">
+                <button class="page-btn" id="prev-climate" disabled>← 上一题</button>
+                <span class="page-info" id="page-climate">第 1 / 6 题</span>
+                <button class="page-btn" id="next-climate">下一题 →</button>
+            </div>
+        </div>
+
+        <div class="quiz-content" id="city">
+            <div class="question-list" id="city-list"></div>
+            <div class="page-nav">
+                <button class="page-btn" id="prev-city" disabled>← 上一题</button>
+                <span class="page-info" id="page-city">第 1 / 3 题</span>
+                <button class="page-btn" id="next-city">下一题 →</button>
+            </div>
+        </div>
+
+        <div class="quiz-content" id="food">
+            <div class="question-list" id="food-list"></div>
+            <div class="page-nav">
+                <button class="page-btn" id="prev-food" disabled>← 上一题</button>
+                <span class="page-info" id="page-food">第 1 / 3 题</span>
+                <button class="page-btn" id="next-food">下一题 →</button>
+            </div>
+        </div>
+
+        <div class="quiz-content" id="custom">
+            <div class="question-list" id="custom-list"></div>
+            <div class="page-nav">
+                <button class="page-btn" id="prev-custom" disabled>← 上一题</button>
+                <span class="page-info" id="page-custom">第 1 / 3 题</span>
+                <button class="page-btn" id="next-custom">下一题 →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 完整题目数据
+        const quizData = {
+            plant: [{
+                id: 1,
+                title: "为什么沙漠里的仙人掌从不会迷路？（）",
+                options: {
+                    A: "根系能感知地下水方向",
+                    B: "自带“沙漠GPS”（刺的朝向指向绿洲）",
+                    C: "懒得动，根本不需要找路",
+                    D: "跟着骆驼的脚印走"
+                },
+                correct: "C",
+                explanation: "仙人掌属于植物，根系固定在土壤中无法移动，自然不需要“找路”，C选项的离谱设定恰好贴合植物的生长特性。",
+                analysis: "从地理角度，仙人掌为适应沙漠环境，根系发达且固定生长，无法自主移动，所谓“迷路”本身对植物不成立，选项C以幽默方式点出核心逻辑。"
+            }, {
+                id: 2,
+                title: "热带雨林的树木为什么长得特别高？（）",
+                options: {
+                    A: "为了争夺阳光，卷生卷死",
+                    B: "想触摸云朵，实现“树生理想”",
+                    C: "怕被地面的虫子啃食",
+                    D: "被其他植物排挤被迫长高"
+                },
+                correct: "A",
+                explanation: "热带雨林植被茂密，下层光照稀缺，树木通过长高争夺上层阳光，保障光合作用，是自然竞争的结果。",
+                analysis: "热带雨林气候湿热，植被垂直分层明显，光照是植物生长的关键资源，高大乔木通过拔高生长占据光照优势，形成独特的雨林景观。"
+            }, {
+                id: 3,
+                title: "苔藓为什么总喜欢长在阴暗潮湿处？（）",
+                options: {
+                    A: "怕晒黑，注重“皮肤管理”",
+                    B: "根系不发达，需保持水分",
+                    C: "喜欢躲猫猫，不想被人类发现",
+                    D: "阴暗处有更多微生物当食物"
+                },
+                correct: "B",
+                explanation: "苔藓没有真正的根，只有假根起固定作用，无法吸收深层水分，阴暗潮湿环境能帮它保持体表水分，避免干枯。",
+                analysis: "从植物地理学角度，苔藓属于苔藓植物门，结构简单，保水能力弱，阴暗潮湿的环境可满足其生长对水分的需求，是典型的环境适应性特征。"
+            }, {
+                id: 4,
+                title: "红树林为什么能在海边扎根？（）",
+                options: {
+                    A: "根系会“抓地功”，不怕海浪冲",
+                    B: "自带“盐过滤器”，能排海水盐分",
+                    C: "和海浪达成约定，互不打扰",
+                    D: "靠渔民定期加固根系"
+                },
+                correct: "B",
+                explanation: "红树林的根系和叶片具有特殊泌盐结构，能将吸收的海水盐分排出体外，同时根系发达可抵御海浪侵蚀，适应滨海环境。",
+                analysis: "红树林是滨海湿地特有的植被，主要分布在热带、亚热带沿海，其泌盐机制和发达根系是适应高盐、风浪环境的核心地理适应性特征。"
+            }, {
+                id: 5,
+                title: "向日葵为什么总跟着太阳转？（）",
+                options: {
+                    A: "怕太阳孤单，主动陪伴",
+                    B: "花盘需阳光烘干露水",
+                    C: "想收集更多阳光当“能量补给”",
+                    D: "跟着太阳找方向，避免迷路"
+                },
+                correct: "C",
+                explanation: "向日葵花盘背面的生长素对光敏感，光照会让生长素转移，导致花盘向光弯曲，目的是让花盘充分接受阳光，促进光合作用和种子发育。",
+                analysis: "从植物生长规律看，向日葵的向光性是生长素分布不均导致的，本质是为了获取更多光照资源，提升生长效率，是植物对光照的适应性反应。"
+            }, {
+                id: 6,
+                title: "竹子为什么长得特别快？（）",
+                options: {
+                    A: "有“快速生长buff”，每天必长高",
+                    B: "怕被其他植物遮挡阳光",
+                    C: "想尽快长成竹子，供人类使用",
+                    D: "根系储存养分多，集中爆发生长"
+                },
+                correct: "D",
+                explanation: "竹子的地下茎（竹鞭）会长期储存大量养分，一旦进入生长季，养分集中供给竹笋，使其能快速拔节生长，部分品种每天可长高几十厘米。",
+                analysis: "竹子属于禾本科植物，其独特的地下茎繁殖和养分储存机制，使其具备快速生长的特性，适应森林环境中争夺光照的竞争需求。"
+            }, {
+                id: 7,
+                title: "荷花为什么能浮在水面上？（）",
+                options: {
+                    A: "叶子自带“浮力气垫”，不会下沉",
+                    B: "水神眷顾，不让它沉底",
+                    C: "叶子表面积大，浮力足够",
+                    D: "靠荷叶下的小鱼托举"
+                },
+                correct: "C",
+                explanation: "荷叶表面积大且质地轻薄，叶片背面有蜡质层，能减少水分吸附，同时叶柄中空通气，整体浮力大于重力，可平稳浮在水面。",
+                analysis: "荷花是水生植物，其叶片和叶柄的结构的适应水生环境的结果，大表面积能提升浮力，蜡质层可防止叶片被水浸透，保障光合作用正常进行。"
+            }, {
+                id: 8,
+                title: "胡杨为什么能在沙漠存活千年？（）",
+                options: {
+                    A: "有“长生秘诀”，能抵抗衰老",
+                    B: "根系扎得极深，可吸收深层地下水",
+                    C: "沙漠环境单纯，少病虫害",
+                    D: "靠过往旅人浇水存活"
+                },
+                correct: "B",
+                explanation: "胡杨的根系可深入地下数十米，直达深层地下水层，同时树干能储存水分，叶片可调节蒸腾作用，适应沙漠干旱环境，寿命可达千年。",
+                analysis: "胡杨是温带荒漠地区的典型树种，被誉为“沙漠脊梁”，其深根系、储水能力和抗旱叶片结构，是适应沙漠极端干旱环境的关键地理特征。"
+            }, {
+                id: 9,
+                title: "含羞草为什么一碰就合拢叶子？（）",
+                options: {
+                    A: "害羞，被碰后不好意思展开",
+                    B: "怕被虫子啃食，假装枯萎",
+                    C: "叶片敏感，能感知外界刺激",
+                    D: "想躲起来，不被人类触碰"
+                },
+                correct: "C",
+                explanation: "含羞草叶片和叶柄连接处有“叶枕”，内含大量水分，触碰时叶枕失水收缩，带动叶片合拢，这是一种对外界刺激的应激反应。",
+                analysis: "含羞草的感震性是植物对外界刺激的防御性反应，可减少昆虫啃食和风雨损伤，是植物适应环境的一种生理机制，常见于热带、亚热带地区。"
+            }, {
+                id: 10,
+                title: "茶树为什么适合长在山区？（）",
+                options: {
+                    A: "喜欢登高望远，享受山景",
+                    B: "山区气温适宜、云雾多，茶叶口感好",
+                    C: "山区少人打扰，能安心生长",
+                    D: "靠山风传播种子，扩大生长范围"
+                },
+                correct: "B",
+                explanation: "山区海拔较高，气温适中，昼夜温差大，且云雾多、光照柔和，能促进茶叶中氨基酸、茶多酚等物质合成，提升口感和品质。",
+                analysis: "茶树喜温暖湿润、光照柔和的环境，山区的地形和气候条件恰好契合其生长需求，我国名茶多产自山区，如黄山毛峰、武夷岩茶等。"
+            }],
+            animal: [{
+                id: 1,
+                title: "骆驼为什么能在沙漠长时间不喝水？（）",
+                options: {
+                    A: "背上的驼峰储存了大量水分",
+                    B: "会“隔空吸水”，从空气中获取水分",
+                    C: "沙漠有隐藏水源，只有骆驼能找到",
+                    D: "减少活动，降低水分消耗"
+                },
+                correct: "D",
+                explanation: "骆驼驼峰主要储存脂肪（非水分），沙漠中通过减少活动、关闭汗腺等方式降低水分消耗，同时高效利用体内水分，实现长时间耐旱。",
+                analysis: "骆驼是沙漠生态的典型适应者，其生理结构（如厚皮毛、高效肾脏）和行为习惯（缓慢移动、夜间活动）共同帮助其应对干旱环境，驼峰脂肪可在代谢时产生水分。"
+            }, {
+                id: 2,
+                title: "企鹅为什么总挤在一起？（）",
+                options: {
+                    A: "怕冷，抱团取暖",
+                    B: "想集体卖萌，吸引人类关注",
+                    C: "怕被海豹单独捕食",
+                    D: "集体讨论迁徙路线"
+                },
+                correct: "A",
+                explanation: "南极地区气候极端寒冷，企鹅体型圆润但御寒能力有限，通过抱团聚集可减少热量散失，核心温度能比外围高十几摄氏度，保障生存。",
+                analysis: "企鹅是极地动物，其群居抱团行为是对极地严寒环境的适应性策略，通过群体聚集维持体温，是极地生态系统中动物的典型生存方式。"
+            }, {
+                id: 3,
+                title: "候鸟为什么每年都要迁徙？（）",
+                options: {
+                    A: "喜欢旅游，打卡不同地区",
+                    B: "追随适宜的气温和食物来源",
+                    C: "被其他候鸟逼迫，不得不迁",
+                    D: "想换个环境，躲避天敌"
+                },
+                correct: "B",
+                explanation: "候鸟对气温和食物需求敏感，北方冬季寒冷、食物短缺，它们会迁徙到南方温暖地区觅食繁殖，春季再返回北方，形成季节性迁徙规律。",
+                analysis: "候鸟迁徙是典型的动物地理行为，受气候变迁和食物分布影响，迁徙路线往往跨越多个气候带，是动物适应环境变化的重要生存策略。"
+            }, {
+                id: 4,
+                title: "海豚为什么喜欢跳出水面？（）",
+                options: {
+                    A: "想呼吸新鲜空气，舒展身体",
+                    B: "展示跳跃技巧，吸引同伴注意",
+                    C: "想看看水面以上的世界",
+                    D: "摆脱身上的寄生虫"
+                },
+                correct: "D",
+                explanation: "海豚跳出水面后重重落下，身体撞击水面产生的冲击力可震落体表的寄生虫，同时也能通过跳跃传递信号、观察周围环境。",
+                analysis: "海豚的跃出行为是其生存适应的一种方式，海洋寄生虫会影响海豚健康，跳跃撞击水面是天然的除虫方法，同时适配其群居交流需求。"
+            }, {
+                id: 5,
+                title: "大象为什么长着长长的鼻子？（）",
+                options: {
+                    A: "方便卷取食物和喝水",
+                    B: "想当“探测器”，感知周围环境",
+                    C: "长得高，能碰到高处的树叶",
+                    D: "用来驱赶蚊虫，保护自己"
+                },
+                correct: "A",
+                explanation: "大象的鼻子是鼻子和上唇的结合体，肌肉发达、灵活度高，既能卷取地面或高处的食物，也能吸水后送入口中，同时可辅助呼吸、交流。",
+                analysis: "大象主要分布在热带草原、雨林地区，长鼻子是其适应环境的核心特征，能高效获取食物和水分，应对热带地区的生存需求，同时具备多重功能。"
+            }, {
+                id: 6,
+                title: "北极熊为什么不怕冷？（）",
+                options: {
+                    A: "身上的绒毛和脂肪层极厚，保暖性强",
+                    B: "自带“保暖系统”，能调节体温",
+                    C: "北极气温其实不低，适合生存",
+                    D: "靠运动产生热量，维持体温"
+                },
+                correct: "A",
+                explanation: "北极熊体表有两层毛发（外层防水、内层保暖），皮下脂肪层厚达10厘米以上，能有效锁住热量，抵御北极零下几十摄氏度的严寒。",
+                analysis: "北极熊是北极地区的顶级捕食者，其毛发和脂肪结构是对极地极端寒冷环境的完美适应，毛发还能反射紫外线，提升保暖效果。"
+            }, {
+                id: 7,
+                title: "蜜蜂为什么要采蜜？（）",
+                options: {
+                    A: "为了给人类提供蜂蜜",
+                    B: "储存食物，供蜂群过冬食用",
+                    C: "喜欢花蜜的味道，忍不住采集",
+                    D: "采蜜时顺便传播花粉，帮植物繁殖"
+                },
+                correct: "B",
+                explanation: "蜜蜂采集花蜜后加工成蜂蜜，储存在蜂巢中，冬季外界无花蜜可采，蜂群依靠储存的蜂蜜维持生命，保障种群延续。",
+                analysis: "蜜蜂是典型的社会性昆虫，其采蜜储蜜行为是适应季节变化的生存策略，同时采蜜过程中附带传播花粉，对植物繁殖和生态平衡有重要作用。"
+            }, {
+                id: 8,
+                title: "长颈鹿为什么长着长长的脖子？（）",
+                options: {
+                    A: "方便吃到高处的树叶",
+                    B: "想看得更远，提前发现天敌",
+                    C: "脖子长更显眼，吸引配偶",
+                    D: "天生如此，没有特殊原因"
+                },
+                correct: "A",
+                explanation: "长颈鹿生活在非洲热带草原，地面和低矮处的植物多被其他动物食用，长长的脖子让它能吃到高处的树叶，占据独特的食物资源，避免竞争。",
+                analysis: "长颈鹿的长脖子是自然选择的结果，适应热带草原的食物分布特点，通过占据高处食物生态位，提升生存竞争力，是动物与环境适配的典型案例。"
+            }, {
+                id: 9,
+                title: "蛇为什么能在地面快速爬行？（）",
+                options: {
+                    A: "身体灵活，靠鳞片辅助移动",
+                    B: "有“隐形脚”，藏在鳞片下",
+                    C: "能借助地面摩擦力滑行",
+                    D: "靠肌肉收缩带动身体前进"
+                },
+                correct: "D",
+                explanation: "蛇没有四肢，通过身体肌肉的交替收缩和舒张，配合腹部鳞片与地面的摩擦力，实现S形或直线形爬行，适应不同地形环境。",
+                analysis: "蛇的爬行方式是对无四肢形态的适应性进化，不同种类的蛇（如沙漠蛇、水蛇）爬行姿势略有差异，均适配其栖息地的地理环境特点。"
+            }, {
+                id: 10,
+                title: "鸟儿为什么能在空中飞翔？（）",
+                options: {
+                    A: "翅膀轻，能被风吹起来",
+                    B: "翅膀上下扇动产生升力",
+                    C: "身体轻盈，没有重量",
+                    D: "有天空的“通行证”，被允许飞行"
+                },
+                correct: "B",
+                explanation: "鸟儿翅膀上下扇动时，上方空气流速快、气压低，下方空气流速慢、气压高，形成上下气压差，产生升力，带动身体升空并维持飞行。",
+                analysis: "鸟类的翅膀结构（轻薄、中空骨骼）和扇动机制，是适应空中飞行的核心特征，不同鸟类（如游禽、猛禽）翅膀形态不同，适配其飞行需求和栖息地环境。"
+            }, {
+                id: 11,
+                title: "青蛙为什么要冬眠？（）",
+                options: {
+                    A: "冬天太冷，不想活动",
+                    B: "冬天食物短缺，靠冬眠减少消耗",
+                    C: "习惯了冬眠，每年必睡",
+                    D: "怕被冻伤，躲起来保暖"
+                },
+                correct: "B",
+                explanation: "青蛙是变温动物，体温随环境变化，冬季气温过低时代谢减慢，且昆虫等食物大量减少，通过冬眠降低能量消耗，等待春季气温回升后苏醒。",
+                analysis: "青蛙的冬眠行为是对温带、亚热带冬季气候和食物分布的适应性策略，变温动物无法自主调节体温，冬眠可避免低温伤害和饥饿，保障种群存活。"
+            }, {
+                id: 12,
+                title: "章鱼为什么能变色？（）",
+                options: {
+                    A: "想换颜色，追求新鲜感",
+                    B: "伪装自己，躲避天敌和捕食猎物",
+                    C: "身体能感知环境颜色，自动匹配",
+                    D: "情绪变化导致颜色改变"
+                },
+                correct: "B",
+                explanation: "章鱼皮肤内有色素细胞，可通过收缩和舒张色素细胞改变身体颜色，既能伪装成周围环境（如岩石、海草）躲避天敌，也能隐藏自己捕食猎物。",
+                analysis: "章鱼是海洋底栖动物，其变色能力是对海洋复杂环境的适应性特征，通过拟态伪装提升生存和捕食成功率，是海洋生物与环境适配的典型案例。"
+            }, {
+                id: 13,
+                title: "松鼠为什么喜欢储存松果？（）",
+                options: {
+                    A: "怕冬天没食物，提前储备",
+                    B: "喜欢收集松果，当成收藏品",
+                    C: "想帮松树传播种子",
+                    D: "储存起来给同伴分享"
+                },
+                correct: "A",
+                explanation: "松鼠主要生活在温带森林，冬季树木落叶、果实稀缺，它们会在秋季收集松果等食物，埋藏在地下或树洞里，冬季依靠储存的食物生存。",
+                analysis: "松鼠的储粮行为是对温带森林季节变化的适应性策略，部分埋藏的松果未被找到，会生根发芽长成新树，间接促进森林生态系统的更新。"
+            }, {
+                id: 14,
+                title: "猎豹为什么跑得特别快？（）",
+                options: {
+                    A: "四肢修长，肌肉发达，适合冲刺",
+                    B: "有“加速技能”，能瞬间提速",
+                    C: "为了追赶猎物，不得不跑得快",
+                    D: "喜欢奔跑的感觉，享受速度"
+                },
+                correct: "A",
+                explanation: "猎豹体型流线型，四肢修长有力，肌肉爆发力强，肺部和心脏功能发达，能在短时间内达到极高速度，适配其在非洲草原追捕猎物的生存需求。",
+                analysis: "猎豹的身体结构是自然选择的结果，专为高速冲刺设计，适应非洲草原开阔地形和猎物（如羚羊）的奔跑能力，是顶级捕食者的典型适应性特征。"
+            }, {
+                id: 15,
+                title: "鲸鱼为什么会喷水？（）",
+                options: {
+                    A: "体内有水，需要排出",
+                    B: "呼吸时，肺部的空气带动海水喷出",
+                    C: "想向同伴发出信号",
+                    D: "为了清洗身体，冲走身上的杂物"
+                },
+                correct: "B",
+                explanation: "鲸鱼是哺乳动物，用肺呼吸，浮出水面时会将肺部的废气排出，废气温度高，遇到冷空气凝结成水雾，同时带动周围海水一起喷出，形成“喷水柱”。",
+                analysis: "鲸鱼的喷水行为是其水生生活中呼吸的适应性表现，不同种类鲸鱼的喷水柱高度、形状不同，可作为区分鲸鱼种类的依据，适配海洋栖息环境。"
+            }],
+            climate: [{
+                id: 1,
+                title: "为什么台风总是绕着陆地边缘走？（）",
+                options: {
+                    A: "怕撞到高楼大厦，受伤",
+                    B: "喜欢海洋环境，不想离开海水",
+                    C: "陆地摩擦力大，削弱台风势力",
+                    D: "有“导航”指引，避开陆地"
+                },
+                correct: "C",
+                explanation: "台风的能量来源于海洋水汽蒸发，陆地表面崎岖，摩擦力远大于海洋，会快速削弱台风的风力和能量，因此台风多沿陆地边缘移动，或登陆后迅速减弱。",
+                analysis: "台风是热带海洋气旋，其形成和维持依赖温暖海水提供的能量，陆地摩擦力和水汽供应中断会导致台风衰减，这是气候系统与地形相互作用的结果。"
+            }, {
+                id: 2,
+                title: "彩虹为什么总是在雨后出现？（）",
+                options: {
+                    A: "雨后天空干净，适合彩虹出现",
+                    B: "阳光折射、反射空气中的小水滴形成",
+                    C: "雨后天晴，神仙画出的美景",
+                    D: "水滴聚集，变成彩色的光带"
+                },
+                correct: "B",
+                explanation: "雨后天空中残留大量小水滴，阳光进入水滴后发生折射、反射，分解成红、橙、黄、绿、蓝、靛、紫七种色光，形成彩虹，需满足阳光、水滴、观察角度三个条件。",
+                analysis: "彩虹是光学现象与气象条件结合的产物，雨后空气中的水滴是光的折射介质，阳光的角度决定彩虹的出现位置，常见于夏季雨后放晴时。"
+            }, {
+                id: 3,
+                title: "沙漠为什么昼夜温差特别大？（）",
+                options: {
+                    A: "沙漠没有云层，白天吸热快、晚上散热快",
+                    B: "沙漠沙子会“控温”，时冷时热",
+                    C: "沙漠人少，没有热量来源",
+                    D: "太阳对沙漠的照射更强烈"
+                },
+                correct: "A",
+                explanation: "沙漠地区气候干旱，云层稀少，白天太阳辐射能直接到达地面，沙子比热容小，吸热快、气温骤升；夜晚地面热量快速散失，无云层保温，气温骤降，温差显著。",
+                analysis: "昼夜温差大是沙漠气候的典型特征，受云层覆盖率和下垫面（沙子）比热容影响，这种温差会影响沙漠生态和地貌形成，如岩石风化。"
+            }, {
+                id: 4,
+                title: "为什么山顶的气温比山脚低？（）",
+                options: {
+                    A: "山顶离太阳远，接收的热量少",
+                    B: "海拔越高，空气越稀薄，保温性差",
+                    C: "山顶风大，热量被吹走",
+                    D: "山顶有积雪，吸收热量"
+                },
+                correct: "B",
+                explanation: "随着海拔升高，空气密度逐渐减小，大气保温作用减弱，地面辐射的热量无法被有效保留，因此气温随海拔升高而降低，大致每升高100米，气温下降0.6℃。",
+                analysis: "气温的垂直递减规律是地形气候的核心特征，受大气受热过程影响，这种规律导致山地不同海拔形成不同的植被带，如高山草甸、针叶林等。"
+            }, {
+                id: 5,
+                title: "闪电为什么总是先看到后听到？（）",
+                options: {
+                    A: "闪电跑得比雷声快",
+                    B: "光的传播速度比声音快",
+                    C: "眼睛在前面，耳朵在后面",
+                    D: "闪电更显眼，先被发现"
+                },
+                correct: "B",
+                explanation: "闪电是光现象，光的传播速度约3×10^8米/秒，雷声是声音现象，声音在空气中的传播速度约340米/秒，光的速度远快于声音，因此先看到闪电后听到雷声。",
+                analysis: "这是光学与声学传播速度差异导致的自然现象，可通过闪电与雷声的时间差估算闪电发生的距离，常见于夏季雷阵雨天气。"
+            }, {
+                id: 6,
+                title: "喀斯特溶洞里的钟乳石是怎么形成的？（）",
+                options: {
+                    A: "神仙雕刻的艺术品",
+                    B: "地下水溶解岩石，慢慢沉积形成",
+                    C: "岩石被风吹雨打，变成钟乳石形状",
+                    D: "古代人类堆积的石头"
+                },
+                correct: "B",
+                explanation: "喀斯特溶洞中的钟乳石由地下水溶解石灰岩（碳酸钙），在溶洞顶部滴落时，水分蒸发、二氧化碳逸出，碳酸钙重新沉积，日积月累形成钟乳石、石笋等形态。",
+                analysis: "钟乳石是喀斯特地貌的典型特征，主要分布在石灰岩广布、气候湿润的地区（如广西、贵州），是水对可溶性岩石的溶蚀、沉积作用的结果。"
+            },
+			 {
+            id: 7,
+            title: "为什么海边的风总是很大？（）",
+            options: {
+                A: "海洋和陆地热力差异，形成海陆风",
+                B: "海边没有遮挡物，风不会被阻挡",
+                C: "海浪带动空气流动，产生大风",
+                D: "海上的风喜欢向陆地吹"
+            },
+            correct: "A",
+            explanation: "白天陆地升温快、气压低，海洋升温慢、气压高，风从海洋吹向陆地（海风）；夜晚陆地降温快、气压高，海洋降温慢、气压低，风从陆地吹向海洋（陆风），形成海陆风，导致海边风力较大。",
+            analysis: "海陆风是热力环流的一种表现，受海洋与陆地比热容差异影响，是沿海地区典型的局地气候现象，对沿海城市气候和空气质量有重要影响。"
+        }, {
+            id: 8,
+            title: "冰川为什么会慢慢移动？（）",
+            options: {
+                A: "冰川太重，被重力牵引移动",
+                B: "冰川下面有水流，带动冰川滑动",
+                C: "地球自转，带动冰川移动",
+                D: "冰川想换个地方，寻找更冷的环境"
+            },
+            correct: "A",
+            explanation: "冰川是大量积雪长期堆积形成的巨大冰体，自身重量极大，在重力作用下会缓慢向海拔较低的地方移动，移动速度因冰川厚度、地形坡度而异，每年可达数米到数十米。",
+            analysis: "冰川移动是极地和高山地区的重要地质作用，移动过程中会侵蚀地表、搬运岩石，形成冰斗、角峰、U形谷等冰川地貌，塑造区域地形。"
+        }, {
+            id: 9,
+            title: "为什么赤道附近总是下雨？（）",
+            options: {
+                A: "赤道附近水汽充足，对流运动强烈",
+                B: "赤道是太阳直射点，雨水多",
+                C: "赤道附近有很多湖泊，蒸发量大",
+                D: "神仙偏爱赤道，多降雨水"
+            },
+            correct: "A",
+            explanation: "赤道地区常年受太阳直射，气温高，海洋和陆地蒸发旺盛，水汽充足，空气受热上升形成强烈对流，对流过程中水汽冷却凝结，形成大量降雨，多为对流雨。",
+            analysis: "赤道地区属于热带雨林气候，终年高温多雨，其降水特征受全球气压带风带影响，赤道低气压带控制下的对流运动是降水频繁的核心原因。"
+        }, {
+            id: 10,
+            title: "沙尘暴为什么多发生在春季？（）",
+            options: {
+                A: "春季风大，地表干燥，沙尘易被吹起",
+                B: "春季万物复苏，沙尘也“活跃”",
+                C: "春季农民耕种，扬起沙尘",
+                D: "春季气温升高，沙尘想“出门”"
+            },
+            correct: "A",
+            explanation: "春季北方地区气温回升快，地表冰雪融化、土壤干燥，且此时冷空气活动频繁，风力较大，干燥的沙尘被大风卷起，形成沙尘暴天气。",
+            analysis: "沙尘暴是干旱、半干旱地区的气象灾害，其发生与春季的气候条件（风力、湿度）和地表状况密切相关，我国北方春季是沙尘暴高发期。"
+        }, {
+            id: 11,
+            title: "河口三角洲为什么是三角形的？（）",
+            options: {
+                A: "河流携带泥沙，在入海口沉积形成",
+                B: "地球引力作用，泥沙堆成三角形",
+                C: "海浪冲击，把泥沙塑造成三角形",
+                D: "古代火山喷发，形成三角形地貌"
+            },
+            correct: "A",
+            explanation: "河流上游携带大量泥沙，流入海洋或湖泊时，水流速度减慢，泥沙逐渐沉积，同时受海浪、潮汐的顶托作用，泥沙向两侧扩散，最终形成三角形的堆积地貌。",
+            analysis: "河口三角洲是河流堆积地貌的典型类型，如长江三角洲、尼罗河三角洲，其形成受河流输沙量、入海口地形、海水动力等多种地理因素影响。"
+        }, {
+            id: 12,
+            title: "为什么极昼极夜只发生在南北极地区？（）",
+            options: {
+                A: "南北极离太阳太远，光照异常",
+                B: "地球倾斜公转，南北极会被阳光持续照射或遮挡",
+                C: "南北极有冰层，反射阳光",
+                D: "神仙规定，只有南北极有极昼极夜"
+            },
+            correct: "B",
+            explanation: "地球公转时地轴与公转轨道面存在66.5°的夹角，导致太阳直射点在南北回归线之间移动，夏至时北极圈及其以北地区出现极昼、南极圈及其以南出现极夜，冬至时则相反。",
+            analysis: "极昼极夜是地球公转与地轴倾斜共同作用的结果，仅发生在南北极圈（66.5°N/S）以内的地区，是极地地区独特的天文和气候现象。"
+        }, {
+            id: 13,
+            title: "温泉的水为什么是热的？（）",
+            options: {
+                A: "地下有岩浆，加热地下水",
+                B: "温泉水被太阳晒热",
+                C: "地下有“加热装置”，持续加热",
+                D: "温泉水本身就带热量"
+            },
+            correct: "A",
+            explanation: "温泉多分布在板块交界处或火山活动区域，地下岩浆活动频繁，热量传递给地下水，使地下水温度升高，涌出地表后形成温泉。",
+            analysis: "温泉的形成与地质构造密切相关，板块运动导致的岩浆活动是温泉热量的主要来源，不同地区温泉的温度、矿物质含量差异，取决于地下岩浆活动强度和地下水循环。"
+        }, {
+            id: 14,
+            title: "为什么沙漠里的沙子大多是黄色的？（）",
+            options: {
+                A: "沙子被太阳晒黄的",
+                B: "沙子中含有氧化铁，呈现黄色",
+                C: "沙漠环境单调，沙子只能是黄色",
+                D: "风吹日晒，沙子慢慢变黄"
+            },
+            correct: "B",
+            explanation: "沙漠沙子多由岩石风化形成，岩石中的铁元素在长期的风化、氧化作用下形成氧化铁（铁锈成分），氧化铁呈现黄色，使沙漠沙子整体呈黄色。",
+            analysis: "沙漠沙子的颜色受矿物成分影响，除黄色外，还有红色沙漠（氧化铁含量高）、白色沙漠（石英砂为主）等，是岩石风化与化学作用的结果。"
+        }, {
+            id: 15,
+            title: "龙卷风为什么破坏力那么强？（）",
+            options: {
+                A: "风速极快，能卷起一切物体",
+                B: "龙卷风里有“能量漩涡”，破坏力大",
+                C: "龙卷风喜欢破坏，故意制造灾害",
+                D: "周围空气压力差大，引发强烈冲击"
+            },
+            correct: "A",
+            explanation: "龙卷风是强烈的气旋性涡旋，中心风速极高，可达每秒几十米甚至上百米，强大的风力能卷起车辆、房屋等重物，同时伴随剧烈的气压变化，破坏力极强。",
+            analysis: "龙卷风多形成于强对流天气中，常见于中纬度地区（如美国中部），其破坏力源于极高的风速和强烈的气压梯度，是极端气象灾害之一。"
+        }, {
+            id: 16,
+            title: "为什么森林里的空气更清新？（）",
+            options: {
+                A: "森林里人少，没有污染",
+                B: "植物光合作用，释放氧气、吸收二氧化碳",
+                C: "森林里有泉水，净化空气",
+                D: "树木能吸附灰尘，过滤空气"
+            },
+            correct: "B",
+            explanation: "森林中的植物通过光合作用吸收二氧化碳，释放氧气，同时植物叶片能吸附空气中的灰尘和部分有害气体，减少空气污染，使空气更清新。",
+            analysis: "森林具有净化空气、调节气候的生态功能，其光合作用是维持大气碳氧平衡的重要环节，是陆地生态系统的“空气净化器”。"
+        }, {
+            id: 17,
+            title: "海啸为什么多由地震引发？（）",
+            options: {
+                A: "地震惊动海洋，引发海浪",
+                B: "海底地震导致地壳升降，带动海水剧烈波动",
+                C: "地震产生的声音，引发海啸",
+                D: "海底火山喷发，伴随地震和海啸"
+            },
+            correct: "B",
+            explanation: "海底发生强烈地震时，会导致海底地壳快速上升或下降，带动上方大量海水剧烈升降、波动，形成巨大的海浪，海浪向岸边传播，形成海啸。",
+            analysis: "海啸多由海底强震（震级≥7级）引发，也可由海底火山喷发、滑坡等地质活动导致，其破坏力极强，对沿海地区威胁巨大。"
+        }, {
+            id: 18,
+            title: "为什么阴天看不到太阳？（）",
+            options: {
+                A: "太阳躲起来了，不想被看到",
+                B: "云层太厚，遮挡了太阳光线",
+                C: "阴天太阳不发光",
+                D: "地球转到了太阳的背面"
+            },
+            correct: "B",
+            explanation: "阴天时天空中云层浓厚，云层由大量小水滴或小冰晶组成，能反射、散射太阳光线，使太阳光线无法穿透云层到达地面，因此看不到太阳。",
+            analysis: "阴天是常见的天气现象，受大气环流和水汽条件影响，云层的厚度和分布决定了天空的阴暗程度，同时也会影响气温和降水。"
+        }, {
+            id: 19,
+            title: "为什么丘陵地区的坡度比较缓？（）",
+            options: {
+                A: "长期风吹雨打，侵蚀作用使坡度变缓",
+                B: "丘陵海拔低，坡度自然缓",
+                C: "人类开垦，把坡度修缓",
+                D: "丘陵是山脉“退化”而来，坡度变缓"
+            },
+            correct: "A",
+            explanation: "丘陵地区海拔较低（500米以下），长期受流水、风力等外力侵蚀作用，地表崎岖程度逐渐降低，坡度变缓，形成起伏和缓的低矮山丘。",
+            analysis: "丘陵是介于平原和山地之间的地形类型，其坡度特征是长期外力侵蚀作用的结果，受气候、岩石类型等地理因素影响，不同地区丘陵形态略有差异。"
+        }, {
+            id: 20,
+            title: "为什么河流总是弯弯曲曲的？（）",
+            options: {
+                A: "河流想绕开障碍物，慢慢形成弯道",
+                B: "地球自转，使河流发生偏转",
+                C: "河流喜欢走弯路，不想走直线",
+                D: "两岸土壤硬度不同，被侵蚀程度不一样"
+            },
+            correct: "D",
+            explanation: "河流两岸的土壤硬度、抗侵蚀能力不同，水流对硬度较弱的一侧侵蚀更强，使河岸逐渐凹进，另一侧则因沉积逐渐凸出，长期下来形成弯曲的河道，即河曲。",
+            analysis: "河流的弯曲形态是流水侵蚀与沉积作用共同作用的结果，受河岸物质组成、地形、水流速度等因素影响，河曲进一步发展可能形成牛轭湖等地貌。"
+        }
+    ],
+    city: [{
+            id: 1,
+            title: "为什么大城市的地铁都建在地下？（）",
+            options: {
+                A: "地下安静，适合运行",
+                B: "节省地面空间，缓解交通拥堵",
+                C: "地下安全，不会发生事故",
+                D: "地铁怕晒，喜欢待在地下"
+            },
+            correct: "B",
+            explanation: "大城市地面人口密集、建筑众多，交通拥堵严重，地铁建在地下可避免占用地面道路和空间，同时不受地面交通信号灯、车辆干扰，提升通行效率，缓解拥堵。",
+            analysis: "地铁是城市公共交通的重要组成部分，其地下布局是适应大城市土地资源紧张、交通压力大的地理选择，能最大化利用空间，优化城市交通网络。"
+        }, {
+            id: 2,
+            title: "为什么北方的房子大多坐北朝南？（）",
+            options: {
+                A: "符合传统习俗，寓意吉祥",
+                B: "能充分接收阳光，冬季保暖",
+                C: "怕北风直吹，遮挡寒风",
+                D: "南方的房子也可以坐北朝南"
+            },
+            correct: "B",
+            explanation: "北方地区冬季寒冷漫长，太阳高度角小，房子坐北朝南可在冬季最大限度接收阳光，提升室内温度，同时避免冬季北风直接吹入室内，兼顾采光和保暖。",
+            analysis: "北方房屋朝向是对寒冷气候的适应性设计，受太阳辐射角度和冬季风影响，是人文建筑与自然地理环境适配的典型案例，体现了气候对建筑布局的影响。"
+        }, {
+            id: 3,
+            title: "为什么超市大多开在居民区附近？（）",
+            options: {
+                A: "居民区人多，客源充足",
+                B: "居民区租金便宜",
+                C: "方便居民购物，提升销量",
+                D: "超市喜欢和居民做邻居"
+            },
+            correct: "C",
+            explanation: "超市的核心客源是周边居民，开在居民区附近能缩短居民购物距离，提升购物便利性，进而增加客流量和销量，是商业区位选择的核心逻辑。",
+            analysis: "商业网点的布局受客源、交通、租金等因素影响，居民区附近客源稳定、消费需求集中，是超市等便民商业的最优区位选择。"
+        }, {
+            id: 4,
+            title: "为什么高铁比普通火车跑得快？（）",
+            options: {
+                A: "高铁的发动机更强大",
+                B: "高铁轨道更平整，阻力小",
+                C: "高铁有“加速buff”，速度更快",
+                D: "高铁车身更轻，跑得更快"
+            },
+            correct: "B",
+            explanation: "高铁采用无砟轨道，轨道平整度高、接缝少，运行时的摩擦阻力和震动远小于普通火车轨道，同时高铁列车的空气动力学设计更优，进一步降低阻力，实现高速运行。",
+            analysis: "交通运行速度与轨道质量、车辆设计密切相关，高铁的轨道技术革新是其速度优势的核心，体现了交通工程与地理区位需求的结合。"
+        }, {
+            id: 5,
+            title: "为什么城市的高楼大厦越来越多？（）",
+            options: {
+                A: "城市土地紧张，向高空发展",
+                B: "高楼大厦更气派，提升城市形象",
+                C: "开发商喜欢建高楼，利润更高",
+                D: "人们喜欢住高层，视野更好"
+            },
+            correct: "A",
+            explanation: "大城市人口持续增长，土地资源稀缺、地价昂贵，向高空发展（建设高层建筑）能在有限的土地上容纳更多人口和功能，提高土地利用效率。",
+            analysis: "高层建筑是城市土地集约利用的必然选择，受城市人口规模、土地供给、经济发展水平等地理因素驱动，是城市化进程的典型特征。"
+        }, {
+            id: 6,
+            title: "为什么港口都建在沿海或沿河地区？（）",
+            options: {
+                A: "方便船舶停靠，装卸货物",
+                B: "沿海地区人多，需要港口",
+                C: "河流能给船舶补充水源",
+                D: "港口怕干旱，喜欢靠近水源"
+            },
+            correct: "A",
+            explanation: "港口的核心功能是船舶停靠、货物装卸和旅客集散，沿海或沿河地区具备水深适宜、水面开阔的水域条件，能满足船舶航行和停靠需求。",
+            analysis: "港口的区位选择以水域条件为核心，需具备良好的水深、避风、淤积少等自然条件，沿海和沿河地区是最符合要求的区位，体现了交通区位与自然地理的适配。"
+        }, {
+            id: 7,
+            title: "为什么红绿灯要用红、黄、绿三种颜色？（）",
+            options: {
+                A: "这三种颜色最鲜艳，容易被看到",
+                B: "红色代表禁止，绿色代表通行，黄色代表警示",
+                C: "传统习惯，一直沿用至今",
+                D: "这三种颜色颜料容易获取"
+            },
+            correct: "B",
+            explanation: "红色波长最长、穿透力强，能快速传递“禁止”信号；绿色与红色对比强烈，清晰传递“通行”信号；黄色介于两者之间，起到“警示”过渡作用，符合交通信号的功能需求。",
+            analysis: "交通信号灯的颜色选择兼顾了光学特性和人类视觉习惯，是人文交通与自然科学的结合，确保不同天气、光线条件下的信号识别效率。"
+        }, {
+            id: 8,
+            title: "为什么农村的房子大多是低层建筑？（）",
+            options: {
+                A: "农村土地充足，不需要建高楼",
+                B: "农村建筑材料有限，建不了高楼",
+                C: "农村人口少，住低层足够",
+                D: "农村风大，高楼容易被吹倒"
+            },
+            correct: "A",
+            explanation: "农村地区土地资源丰富、地价低廉，不需要通过建设高层建筑来节约空间，低层建筑建设成本低、维护方便，更适配农村的居住需求和经济水平。",
+            analysis: "建筑层数受土地供给、人口密度、经济水平等地理因素影响，农村的土地资源优势决定了低层建筑的主导地位，与城市的高层建筑形成鲜明对比。"
+        }, {
+            id: 9,
+            title: "为什么机场大多建在城市郊区？（）",
+            options: {
+                A: "郊区土地便宜，建设成本低",
+                B: "机场噪音大，避免影响城市居民",
+                C: "郊区视野开阔，适合飞机起降",
+                D: "城市中心没有足够空间建机场"
+            },
+            correct: "B",
+            explanation: "飞机起降时会产生高强度噪音，对居民生活影响较大，城市郊区人口密度低，能减少噪音污染的影响；同时郊区土地充足，适合建设大面积跑道和航站楼。",
+            analysis: "机场的区位选择需平衡噪音影响、土地成本、空间需求等因素，郊区的低人口密度和充足空间使其成为最优选择，体现了交通设施与城市环境的协调。"
+        }, {
+            id: 10,
+            title: "为什么步行街禁止车辆通行？（）",
+            options: {
+                A: "保护行人安全，提升购物体验",
+                B: "步行街路面窄，车辆无法通行",
+                C: "怕车辆弄脏步行街路面",
+                D: "传统规定，禁止车辆进入"
+            },
+            correct: "A",
+            explanation: "步行街以步行购物、休闲为核心功能，禁止车辆通行能消除交通隐患，保障行人安全，同时营造无尾气、无噪音的舒适环境，提升购物体验。",
+            analysis: "步行街的规划是城市商业与交通的协调结果，通过限制车辆通行突出步行功能，适配商业休闲的区位需求，是城市空间功能分区的典型案例。"
+        }, {
+            id: 11,
+            title: "为什么南方的屋顶大多是斜的？（）",
+            options: {
+                A: "南方雨水多，斜屋顶便于排水",
+                B: "斜屋顶更美观，符合南方建筑风格",
+                C: "南方风力大，斜屋顶更稳固",
+                D: "南方阳光强，斜屋顶能减少暴晒"
+            },
+            correct: "A",
+            explanation: "南方气候湿润，年降水量大，斜屋顶的倾斜角度能加快雨水流淌速度，避免雨水在屋顶淤积导致渗漏，保护建筑结构，是对多雨气候的适应性设计。",
+            analysis: "建筑屋顶形态受气候条件主导，南方多雨、北方少雨的气候差异，导致了“南斜北平”的屋顶特征，体现了人文建筑与自然气候的适配。"
+        }, {
+            id: 12,
+            title: "为什么公交车要设置专用车道？（）",
+            options: {
+                A: "公交车体积大，需要专用车道",
+                B: "保障公交车通行效率，鼓励公共交通",
+                C: "公交车载客观多，优先通行",
+                D: "避免公交车和私家车发生碰撞"
+            },
+            correct: "B",
+            explanation: "公交车是大运量公共交通，设置专用车道能避免与私家车混行导致的拥堵，提升公交车的运行速度和准点率，吸引更多人选择公共交通，缓解城市整体拥堵。",
+            analysis: "专用车道的设置是城市交通资源优化配置的体现，通过优先保障公共交通效率，引导出行方式转变，适配大城市的交通疏导需求。"
+        }, {
+            id: 13,
+            title: "为什么城市的商圈大多集中在市中心？（）",
+            options: {
+                A: "市中心交通便利，人流量大",
+                B: "市中心是城市核心，必须有商圈",
+                C: "市中心租金高，只有商圈能承受",
+                D: "人们习惯去市中心购物"
+            },
+            correct: "A",
+            explanation: "市中心是城市的交通枢纽，多条交通线路交汇，通达性强，能吸引来自城市各个区域的消费者，人流量大、消费需求集中，适合商圈集聚。",
+            analysis: "商圈的集聚受交通通达性、人流量、消费能力等地理因素影响，市中心的核心区位优势使其成为商圈的最优集聚地，形成城市商业中心。"
+        }, {
+            id: 14,
+            title: "为什么北方冬季要给道路撒盐？（）",
+            options: {
+                A: "盐能融化冰雪，防止路面结冰",
+                B: "盐能保护路面，减少磨损",
+                C: "盐能杀菌消毒，净化路面",
+                D: "传统习惯，冬季必撒盐"
+            },
+            correct: "A",
+            explanation: "盐能降低水的冰点，撒在积雪或结冰的路面上，能使冰雪在更低温度下融化，防止路面结冰打滑，保障冬季交通通行安全。",
+            analysis: "北方冬季寒冷多冰雪，道路撒盐是应对冰雪天气的地理适应性措施，通过改变水的物理特性解决气候带来的交通问题，体现了人文措施与自然气候的协调。"
+        }, {
+            id: 15,
+            title: "为什么居民楼大多有阳台？（）",
+            options: {
+                A: "方便居民晾晒衣物、休闲",
+                B: "增加房屋面积，提升房价",
+                C: "阳台能保护窗户，避免暴晒",
+                D: "建筑设计需要，必须有阳台"
+            },
+            correct: "A",
+            explanation: "阳台的核心功能是满足居民晾晒衣物、摆放物品、休闲观景等需求，尤其在多雨、潮湿的地区，阳台能提供户外晾晒空间，提升居住便利性。",
+            analysis: "阳台是住宅建筑的功能性设计，适配居民的日常生活需求，其布局和大小受气候、生活习惯等地理因素影响，是人文建筑与生活需求的结合。"
+        }, {
+            id: 16,
+            title: "为什么高铁车站大多建得很大？（）",
+            options: {
+                A: "高铁客流量大，需要大空间容纳",
+                B: "提升城市形象，彰显实力",
+                C: "预留发展空间，应对未来客流增长",
+                D: "高铁站占地面积大，只能建得大"
+            },
+            correct: "A",
+            explanation: "高铁运行速度快、班次密集，单次客流量大，需要大面积的候车厅、检票口、换乘通道等设施来容纳乘客，保障通行效率和乘车体验。",
+            analysis: "交通枢纽的规模与客流量直接相关，高铁站的大型化设计是对大运量客流的适应性调整，体现了交通设施与运输需求的匹配。"
+        }, {
+            id: 17,
+            title: "为什么城市要设置绿化带？（）",
+            options: {
+                A: "美化环境，净化空气",
+                B: "分隔道路，保障交通安全",
+                C: "给行人提供休息空间",
+                D: "增加城市绿地面积，提升宜居度"
+            },
+            correct: "A",
+            explanation: "城市绿化带中的植物能吸收二氧化碳、释放氧气，吸附空气中的灰尘和有害气体，同时能美化城市环境，缓解视觉疲劳，改善城市生态质量。",
+            analysis: "绿化带是城市生态系统的重要组成部分，其设置兼顾生态功能和景观功能，是应对城市空气污染、提升宜居度的地理措施，体现了城市生态与人文环境的协调。"
+        }, {
+            id: 18,
+            title: "为什么农村的道路大多比较窄？（）",
+            options: {
+                A: "农村车辆少，窄道路足够使用",
+                B: "农村土地珍贵，节省用地",
+                C: "农村建设资金有限，修不起宽道路",
+                D: "农村地形复杂，修宽道路困难"
+            },
+            correct: "A",
+            explanation: "农村地区人口密度低，私家车、货车等车辆的保有量和通行量远低于城市，窄道路能满足日常通行需求，同时降低建设和维护成本。",
+            analysis: "道路宽度受交通流量、经济水平、土地资源等地理因素影响，农村的低交通流量需求决定了窄道路的主导地位，与城市的宽道路形成功能适配。"
+        }, {
+            id: 19,
+            title: "为什么写字楼大多集中在城市CBD？（）",
+            options: {
+                A: "CBD交通便利，商务氛围浓厚",
+                B: "CBD房价高，只有写字楼能承受",
+                C: "政府规划，写字楼必须在CBD",
+                D: "方便企业之间沟通合作，提升效率"
+            },
+            correct: "D",
+            explanation: "CBD（中央商务区）集中了大量企业、金融机构、商务服务机构，写字楼集聚能缩短企业间的沟通距离，降低商务成本，形成产业集群效应，提升合作效率。",
+            analysis: "写字楼的集聚是产业区位选择的结果，CBD的商务资源集聚优势使其成为企业办公的最优区位，体现了产业集群与城市空间布局的协调。"
+        }, {
+            id: 20,
+            title: "为什么共享单车要定点停放？（）",
+            options: {
+                A: "方便用户查找，规范管理",
+                B: "避免乱停乱放，影响城市交通",
+                C: "便于工作人员维护和充电",
+                D: "共享单车公司规定，必须定点停放"
+            },
+            correct: "B",
+            explanation: "共享单车若随意停放，会占用人行道、非机动车道、公交站点等公共空间，影响行人通行和城市交通秩序，定点停放能规范管理，保障公共空间的有序使用。",
+            analysis: "共享单车的停放管理是城市交通与公共空间协调的体现，定点停放既满足用户使用需求，又避免对城市交通造成负面影响，适配城市空间的高效利用。"
+        }
+    ],
+    food: [{
+            id: 1,
+            title: "为什么东北盛产大米？（）",
+            options: {
+                A: "东北黑土地肥沃，气候适宜水稻生长",
+                B: "东北人喜欢吃大米，大量种植",
+                C: "东北水资源充足，适合种水稻",
+                D: "东北纬度高，水稻生长周期长，口感好"
+            },
+            correct: "A",
+            explanation: "东北拥有肥沃的黑土地，有机质含量高，土壤肥力强；同时夏季温暖湿润、光照充足，雨热同期，完全满足水稻生长的气候需求，是优质水稻产区。",
+            analysis: "农业生产受土壤、气候、水源等自然地理因素影响，东北的黑土资源和温带季风气候完美适配水稻生长，形成了规模化的水稻种植产业。"
+        }, {
+            id: 2,
+            title: "为什么四川人喜欢吃辣？（）",
+            options: {
+                A: "四川气候潮湿，吃辣能驱寒祛湿",
+                B: "四川辣椒产量高，食材充足",
+                C: "四川人天生能吃辣，口味偏好",
+                D: "吃辣能增进食欲，多吃饭"
+            },
+            correct: "A",
+            explanation: "四川地处四川盆地，气候潮湿多雾，空气湿度大，辣椒中的辣椒素能促进血液循环、加速汗液排出，帮助身体排出湿气，长期形成了嗜辣的饮食传统。",
+            analysis: "饮食口味的地域特征与气候环境密切相关，四川的潮湿气候是形成辣食文化的核心地理原因，辣椒成为适配当地环境的标志性食材。"
+        }, {
+            id: 3,
+            title: "为什么新疆的瓜果特别甜？（）",
+            options: {
+                A: "新疆光照充足，昼夜温差大，糖分积累多",
+                B: "新疆的土壤适合瓜果生长",
+                C: "新疆的水资源纯净，灌溉出的瓜果甜",
+                D: "新疆人喜欢种甜瓜果，精心培育"
+            },
+            correct: "A",
+            explanation: "新疆属于温带大陆性气候，降水稀少，晴天多，光照时间长、强度大，光合作用充分；夜晚气温低，呼吸作用减弱，糖分消耗少，最终积累大量糖分。",
+            analysis: "瓜果的甜度受光照、温差等气候因素影响，新疆的气候条件为糖分积累提供了绝佳环境，使其成为全国著名的优质瓜果产区。"
+        }, {
+            id: 4,
+            title: "为什么南方人喜欢吃米饭，北方人喜欢吃面食？（）",
+            options: {
+                A: "南方适合种水稻，北方适合种小麦",
+                B: "南北口味差异，天生偏好不同",
+                C: "传统习俗影响，一直延续至今",
+                D: "米饭和面食的做法不同，适配南北饮食"
+            },
+            correct: "A",
+            explanation: "南方气候湿热、降水充沛，河网密布，适合水稻生长；北方气候干燥、光照充足，地形平坦，适合小麦种植，食材分布直接决定了南北主食差异。",
+            analysis: "饮食结构的地域差异本质是农业地理的体现，自然地理条件决定了农作物的分布格局，进而塑造了不同地区的饮食传统。"
+        }, {
+            id: 5,
+            title: "为什么茶叶大多产自南方？（）",
+            options: {
+                A: "南方气候湿润、云雾多，适合茶树生长",
+                B: "南方人喜欢喝茶，大量种植",
+                C: "南方的土壤是酸性，适配茶树需求",
+                D: "南方海拔适宜，茶树长得好"
+            },
+            correct: "C",
+            explanation: "茶树偏好酸性土壤，南方多为红壤、黄壤等酸性土壤，土壤条件完全适配茶树生长；同时南方气候湿润、云雾多，进一步提升茶叶品质。",
+            analysis: "茶树的生长受土壤、气候、地形等多重地理因素影响，南方的酸性土壤是茶树种植的核心条件，结合湿润气候，形成了集中的茶叶产区。"
+        }, {
+            id: 6,
+            title: "为什么渔民大多住在沿海地区？（）",
+            options: {
+                A: "方便捕鱼，以渔业为生",
+                B: "沿海地区气候适宜，适合居住",
+                C: "渔民喜欢大海，靠近海边生活",
+                D: "沿海地区有港口，便于出售渔获"
+            },
+            correct: "A",
+            explanation: "渔民以捕鱼为主要生计，沿海地区渔业资源丰富，渔船出海、捕鱼作业便捷，居住在沿海能缩短作业距离，提高生产效率，是职业与区位的适配。",
+            analysis: "人类的居住区位往往与生计方式密切相关，沿海地区的渔业资源优势吸引渔民集聚，形成了“靠海吃海”的居住和生产格局。"
+        }, {
+            id: 7,
+            title: "为什么北方冬季要储存大白菜？（）",
+            options: {
+                A: "北方冬季寒冷，蔬菜短缺，大白菜耐储存",
+                B: "北方大白菜产量高，价格便宜",
+                C: "北方人喜欢吃大白菜，习惯储存",
+                D: "大白菜营养丰富，适合冬季食用"
+            },
+            correct: "A",
+            explanation: "北方冬季气温极低，蔬菜难以露天种植，新鲜蔬菜供应短缺；而大白菜耐低温、耐储存，收获后可在地窖等环境中保存数月，成为冬季主要蔬菜来源。",
+            analysis: "饮食储存习惯受气候条件影响，北方的严寒气候限制了冬季蔬菜生产，大白菜的耐储存特性使其成为适配当地气候的冬季储备蔬菜。"
+        }, {
+            id: 8,
+            title: "为什么热带地区盛产水果？（）",
+            options: {
+                A: "热带气候炎热、降水充足，适合水果生长",
+                B: "热带土壤肥沃，能培育出多种水果",
+                C: "热带人喜欢吃水果，大量种植",
+                D: "热带阳光强烈，水果糖分足，口感好"
+            },
+            correct: "A",
+            explanation: "热带地区终年高温，降水充沛，水热条件充足，能满足多种水果的生长需求，且水果生长周期短、产量高，种类丰富。",
+            analysis: "水果种植对水热条件要求较高，热带地区的热带雨林气候和热带季风气候提供了充足的热量和降水，成为水果的集中产区。"
+        }, {
+            id: 9,
+            title: "为什么农民要在农田里浇水施肥？（）",
+            options: {
+                A: "给农作物补充水分和养分，促进生长",
+                B: "习惯使然，每次种地都要做",
+                C: "避免农作物干旱枯萎",
+                D: "让农作物长得更快，提前收获"
+            },
+            correct: "A",
+            explanation: "水分是农作物光合作用和代谢的基础，养分（肥料）能补充土壤不足的元素，两者共同保障农作物正常生长、提高产量和品质。",
+            analysis: "农业生产是人类对自然条件的改造和补充，浇水和施肥分别解决了水分和养分不足的问题，体现了人文活动与自然地理条件的协调。"
+        }, {
+            id: 10,
+            title: "为什么内蒙古以畜牧业为主？（）",
+            options: {
+                A: "内蒙古草原广阔，适合放牧",
+                B: "内蒙古人喜欢养牛羊，以畜牧业为生",
+                C: "内蒙古气候干旱，不适合种庄稼",
+                D: "传统畜牧业发达，延续至今"
+            },
+            correct: "A",
+            explanation: "内蒙古拥有我国最广阔的温带草原，草原面积大、牧草丰富，为牛羊等草食动物提供了充足的食物来源，具备发展畜牧业的天然优势。",
+            analysis: "畜牧业的发展依赖草场资源，内蒙古的草原地形和温带大陆性气候（干旱少雨，适合牧草生长），使其成为我国重要的畜牧业基地。"
+        }, {
+            id: 11,
+            title: "为什么南方的粽子是甜的，北方的粽子是咸的？（）",
+            options: {
+                A: "南北口味差异，适配当地饮食偏好",
+                B: "南方盛产糯米和糖，北方盛产肉和盐",
+                C: "传统做法不同，代代相传",
+                D: "甜粽子和咸粽子的制作难度不同"
+            },
+            correct: "A",
+            explanation: "南方饮食偏甜，甜粽子（如豆沙、红枣馅）适配当地口味偏好；北方饮食偏咸鲜，咸粽子（如鲜肉、蛋黄馅）更符合北方口味，是地域饮食文化的体现。",
+            analysis: "饮食口味的地域差异受历史、气候、物产等多重地理因素影响，南甜北咸的粽子差异，是南北饮食文化的缩影，体现了人文习俗与地域特征的结合。"
+        }, {
+            id: 12,
+            title: "为什么梯田大多建在山区？（）",
+            options: {
+                A: "山区地形崎岖，梯田能平整土地，便于耕种",
+                B: "山区没有平地，只能建梯田",
+                C: "梯田美观，提升山区景观",
+                D: "山区降水多，梯田能储存水分"
+            },
+            correct: "A",
+            explanation: "山区地形坡度大，不适宜直接耕种，通过修建梯田可平整土地，减少水土流失，同时能充分利用山区的土地资源和降水，发展农业生产。",
+            analysis: "梯田是人类适应山区地形的农业工程，通过改造地形满足耕种需求，体现了人文活动与自然地形的协调，是山区农业可持续发展的重要方式。"
+        }, {
+            id: 13,
+            title: "为什么沿海地区的海鲜特别新鲜？（）",
+            options: {
+                A: "靠近产地，刚捕捞上来就能食用",
+                B: "沿海地区的烹饪方式能保留鲜味",
+                C: "海水纯净，海鲜口感好",
+                D: "沿海地区的海鲜品种多，品质好"
+            },
+            correct: "A",
+            explanation: "沿海地区靠近海洋渔业产地，海鲜捕捞后可快速运输到市场销售，减少了运输时间和保鲜环节，能最大程度保留海鲜的新鲜度。",
+            analysis: "农产品的新鲜度与运输距离密切相关，沿海地区的区位优势缩短了海鲜从产地到餐桌的距离，体现了区位条件对饮食品质的影响。"
+        }, {
+            id: 14,
+            title: "为什么北方的小麦要在秋季播种？（）",
+            options: {
+                A: "秋季气候适宜，小麦能安全越冬，来年丰收",
+                B: "北方秋季空闲，适合播种",
+                C: "小麦生长周期长，需要提前播种",
+                D: "传统播种时间，一直遵循"
+            },
+            correct: "A",
+            explanation: "北方种植的冬小麦需要经过冬季低温锻炼才能正常抽穗结实，秋季播种后，小麦幼苗能在冬季来临前扎根生长，抵御严寒，来年春季继续生长、夏季丰收。",
+            analysis: "农作物的播种时间受气候和生长周期影响，北方的温带季风气候决定了冬小麦的秋季播种习性，体现了农业生产与气候节律的适配。"
+        }, {
+            id: 15,
+            title: "为什么南方的雨季要给农田排水？（）",
+            options: {
+                A: "雨水过多，农作物根系会腐烂，需要排水防涝",
+                B: "农田积水影响耕种",
+                C: "排水能让土壤更疏松，利于农作物生长",
+                D: "避免雨水冲刷农田，流失土壤"
+            },
+            correct: "A",
+            explanation: "南方雨季降水集中，农田容易积水，农作物根系长期浸泡在水中会缺氧腐烂，导致减产甚至绝收，排水能降低土壤湿度，保障根系正常呼吸。",
+            analysis: "农业生产需应对气候带来的风险，南方雨季的排水措施是抵御洪涝灾害的重要方式，体现了人文措施与气候风险的协调，保障农业生产稳定。"
+        }
+    ],
+    custom: [{
+            id: 1,
+            title: "为什么春节要贴春联？（）",
+            options: {
+                A: "寓意吉祥，辞旧迎新，增添节日氛围",
+                B: "传统习俗，必须贴春联",
+                C: "防止寒风进入屋内，保暖",
+                D: "装饰房屋，让家里更喜庆"
+            },
+            correct: "A",
+            explanation: "春联起源于桃符，上面书写吉祥语，寓意驱邪避灾、辞旧迎新，寄托了人们对新年的美好期盼，同时能增添春节的节日氛围。",
+            analysis: "民俗活动往往承载着人们的文化信仰和美好愿望，贴春联作为春节的重要习俗，是地域文化与节日氛围的结合，体现了人文习俗的文化内涵。"
+        }, {
+            id: 2,
+            title: "为什么藏族人喜欢穿藏袍？（）",
+            options: {
+                A: "藏袍保暖性强，适配青藏高原寒冷气候",
+                B: "藏族传统服饰，彰显民族特色",
+                C: "藏袍制作简单，便于穿着",
+                D: "藏袍材质特殊，耐磨耐用"
+            },
+            correct: "A",
+            explanation: "青藏高原海拔高、气候寒冷，藏袍以羊毛为原料，保暖性极强；同时藏袍宽大，白天可脱下一只袖子调节体温，适配高原昼夜温差大的气候特征。",
+            analysis: "民族服饰是对当地自然环境的适应性设计，藏袍的材质和款式完美适配青藏高原的寒冷气候，体现了民族文化与自然环境的协调。"
+        }, {
+            id: 3,
+            title: "为什么傣族有泼水节？（）",
+            options: {
+                A: "寓意洗去过去一年的不顺，迎接新生",
+                B: "傣族气候炎热，泼水降温",
+                C: "传统节日，代代相传",
+                D: "庆祝丰收，感谢自然"
+            },
+            correct: "A",
+            explanation: "泼水节是傣族的新年，泼水寓意洗去过去一年的烦恼和不顺，祝福对方迎来崭新的一年，同时泼水也能在炎热气候中带来清凉。",
+            analysis: "民俗节日的习俗与文化寓意、气候环境密切相关，傣族泼水节既承载了辞旧迎新的文化内涵，又适配了热带炎热的气候，是民族文化与自然环境的结合。"
+        }, {
+            id: 4,
+            title: "为什么北方的四合院是封闭式布局？（）",
+            options: {
+                A: "北方冬季寒冷，封闭式布局能保暖防风",
+                B: "传统建筑风格，注重隐私",
+                C: "方便家族聚居，增进感情",
+                D: "防止外人进入，保障安全"
+            },
+            correct: "A",
+            explanation: "北方冬季寒冷多风，四合院四面围合、中间设天井的封闭式布局，能减少冷空气进入，提升院内温度，同时阻挡寒风侵袭，是对寒冷气候的适应性设计。",
+            analysis: "传统民居的布局受气候条件影响显著，北方四合院的封闭式结构是对寒冷多风气候的适配，体现了人文建筑与自然气候的协调。"
+        }, {
+            id: 5,
+            title: "为什么日本人喜欢穿和服？（）",
+            options: {
+                A: "和服是日本传统服饰，用于节日和庆典",
+                B: "和服舒适透气，适合日本气候",
+                C: "和服美观，彰显日本文化",
+                D: "传统习俗，日常也会穿"
+            },
+            correct: "A",
+            explanation: "和服是日本的传统民族服饰，承载着日本的历史文化和审美观念，多用于新年、婚礼、祭典等重要节日和庆典，是文化传承的重要载体。",
+            analysis: "民族服饰是地域文化的重要象征，和服的穿着场景体现了日本对传统文化的重视，是人文习俗与文化传承的结合。"
+        }, {
+            id: 6,
+            title: "为什么东南亚人喜欢戴斗笠？（）",
+            options: {
+                A: "遮挡阳光和雨水，适配热带气候",
+                B: "斗笠轻便，便于携带",
+                C: "东南亚传统配饰，彰显特色",
+                D: "斗笠制作简单，成本低"
+            },
+            correct: "A",
+            explanation: "东南亚属于热带气候，阳光强烈、降水频繁，斗笠能有效遮挡烈日暴晒和雨水侵袭，同时轻便透气，适配当地的气候和日常生活需求。",
+            analysis: "传统配饰的功能往往与自然环境密切相关，东南亚斗笠的遮阳避雨功能是对热带气候的适配，体现了人文用品与自然环境的协调。"
+        }, {
+            id: 7,
+            title: "为什么中秋节要吃月饼？（）",
+            options: {
+                A: "寓意团圆，寄托对家人的思念",
+                B: "中秋节盛产月饼，食材充足",
+                C: "月饼口感好，适合节日食用",
+                D: "传统习俗，一直延续"
+            },
+            correct: "A",
+            explanation: "月饼圆形，寓意“团圆”，中秋节是家人团聚的节日，吃月饼寄托了人们对家人团圆的期盼，尤其对异地游子而言，月饼是思念的象征。",
+            analysis: "节日饮食往往承载着文化寓意，月饼的团圆寓意与中秋节的团圆主题高度契合，是人文习俗与文化内涵的结合，体现了节日文化的凝聚力。"
+        }, {
+            id: 8,
+            title: "为什么阿拉伯人喜欢穿长袍、戴头巾？（）",
+            options: {
+                A: "遮挡阳光和风沙，适配沙漠气候",
+                B: "阿拉伯传统服饰，彰显民族文化",
+                C: "长袍宽松透气，穿着舒适",
+                D: "宗教习俗，必须穿着"
+            },
+            correct: "A",
+            explanation: "阿拉伯地区多为热带沙漠气候，阳光强烈、风沙大，长袍和头巾能遮挡烈日暴晒和风沙侵袭，同时宽松的款式能促进空气流通，保持凉爽。",
+            analysis: "民族服饰是对当地自然环境的适应性设计，阿拉伯长袍和头巾的款式和功能完美适配沙漠气候，体现了民族文化与自然环境的协调。"
+        }, {
+            id: 9,
+            title: "为什么苗族喜欢戴银饰？（）",
+            options: {
+                A: "银饰是苗族文化象征，寓意吉祥",
+                B: "苗族盛产白银，材质充足",
+                C: "银饰美观，提升服饰质感",
+                D: "银饰能驱邪避灾，保护自己"
+            },
+            correct: "A",
+            explanation: "银饰是苗族服饰的核心元素，不同图案的银饰承载着苗族的历史传说、图腾信仰，寓意吉祥如意、平安顺遂，是苗族文化的重要象征。",
+            analysis: "民族饰品往往是文化传承的载体，苗族银饰的图案和寓意体现了苗族的文化内涵，是人文习俗与文化传承的结合，彰显了民族特色。"
+        }, {
+            id: 10,
+            title: "为什么欧洲人喜欢喝咖啡？（）",
+            options: {
+                A: "咖啡起源于欧洲，传统饮品",
+                B: "欧洲气候寒冷，喝咖啡能取暖",
+                C: "咖啡能提神醒脑，适配工作需求",
+                D: "欧洲适合种植咖啡，食材充足"
+            },
+            correct: "C",
+            explanation: "欧洲发达国家集中，工作节奏快，咖啡中的咖啡因能提神醒脑、缓解疲劳，适配高强度的工作需求，逐渐成为日常饮品。",
+            analysis: "饮食偏好受生活节奏、工作需求等人文地理因素影响，欧洲人对咖啡的喜爱是饮品功能与工作需求的适配，体现了饮食文化与生活方式的协调。"
+        }, {
+            id: 11,
+            title: "为什么春节要放烟花爆竹？（）",
+            options: {
+                A: "寓意驱赶年兽，辞旧迎新",
+                B: "增添节日氛围，庆祝新年",
+                C: "传统习俗，一直沿用",
+                D: "表达对新年的美好期盼"
+            },
+            correct: "A",
+            explanation: "根据民间传说，烟花爆竹的响声能驱赶“年兽”，保护人们平安过年，同时辞旧迎新，寓意驱散过去一年的晦气，迎来吉祥的新年。",
+            analysis: "民俗活动往往与民间传说相关，放烟花爆竹作为春节的重要习俗，承载了驱邪避灾、辞旧迎新的文化寓意，是人文习俗与传统文化的结合。"
+        }, {
+            id: 12,
+            title: "为什么非洲人喜欢穿色彩鲜艳的衣服？（）",
+            options: {
+                A: "非洲气候炎热，鲜艳衣服更透气",
+                B: "彰显民族特色，表达对生活的热爱",
+                C: "非洲盛产彩色布料，材质充足",
+                D: "传统习俗，喜欢鲜艳颜色"
+            },
+            correct: "B",
+            explanation: "非洲各民族有着独特的文化传统，色彩鲜艳的衣服能彰显民族特色和身份，同时明亮的色彩也表达了非洲人民对生活的热爱和乐观态度。",
+            analysis: "服饰颜色往往反映地域文化和民族性格，非洲鲜艳的服饰是民族特色与生活态度的体现，彰显了多元的民族文化。"
+        }, {
+            id: 13,
+            title: "为什么端午节要吃粽子、赛龙舟？（）",
+            options: {
+                A: "纪念屈原，传承传统文化",
+                B: "端午节气候适宜，适合赛龙舟",
+                C: "粽子耐储存，适合节日食用",
+                D: "赛龙舟能增进凝聚力，庆祝节日"
+            },
+            correct: "A",
+            explanation: "相传端午节吃粽子、赛龙舟是为了纪念爱国诗人屈原，逐渐成为节日习俗，承载着爱国主义精神和传统文化，代代相传。",
+            analysis: "节日习俗往往与历史人物或传说相关，端午节的习俗是对传统文化的传承，体现了人文习俗与历史文化的结合，具有重要的文化价值。"
+        }, {
+            id: 14,
+            title: "为什么北欧人喜欢木制房屋？（）",
+            options: {
+                A: "北欧森林资源丰富，木材充足",
+                B: "木制房屋保暖性强，适配寒冷气候",
+                C: "木制房屋制作简单，成本低",
+                D: "北欧传统建筑风格，彰显特色"
+            },
+            correct: "B",
+            explanation: "北欧气候寒冷漫长，木材导热性差、保温效果优异，能有效抵御严寒；同时木材在北欧分布广泛，取材便捷，适配当地气候和资源条件。",
+            analysis: "传统民居建筑材料与气候环境高度适配，北欧的寒冷气候决定了木制房屋的主导地位，体现了人文建筑与自然地理条件的协调统一。"
+        }, {
+            id: 15,
+            title: "为什么印度人喜欢吃咖喱？（）",
+            options: {
+                A: "咖喱能掩盖食材异味，提升口感",
+                B: "印度气候炎热，咖喱能增进食欲",
+                C: "印度盛产咖喱原料，食材充足",
+                D: "传统饮食文化，代代相传"
+            },
+            correct: "D",
+            explanation: "咖喱是印度传统饮食文化的核心载体，融合了多种香料，其食用习惯已传承数百年，成为印度饮食的标志性特色，并非单纯依赖食材或气候因素。",
+            analysis: "饮食文化的形成是历史传承、宗教信仰、食材分布等多重人文地理因素的结果，印度咖喱文化体现了传统习俗对饮食偏好的深远影响。"
+        }, {
+            id: 16,
+            title: "为什么客家人喜欢建土楼？（）",
+            options: {
+                A: "土楼防御性强，能抵御外敌和自然灾害",
+                B: "客家地区土壤充足，适合建土楼",
+                C: "土楼能容纳大家族聚居，增进感情",
+                D: "客家传统建筑风格，彰显特色"
+            },
+            correct: "A",
+            explanation: "客家人多聚居于山区，历史上常面临外敌侵扰和山洪、地震等自然灾害，土楼墙体厚实、布局封闭，兼具防御外敌和抵御灾害的功能，是安全居住的重要保障。",
+            analysis: "传统民居的建筑形态受地理环境和安全需求影响，客家土楼的防御性设计是对山区复杂环境和历史安全隐患的适应性选择，体现了人文建筑与生存需求的适配。"
+        }, {
+            id: 17,
+            title: "为什么美国人喜欢过感恩节？（）",
+            options: {
+                A: "感谢丰收，感恩生活，传承习俗",
+                B: "感恩节是美国重要节日，放假休闲",
+                C: "传统节日，和家人团聚",
+                D: "感谢祖先，纪念历史"
+            },
+            correct: "A",
+            explanation: "感恩节起源于美国早期移民对丰收的感恩和对印第安人的感谢，核心寓意是感恩丰收、珍惜生活，其习俗代代相传，成为美国重要的家庭团聚节日。",
+            analysis: "节日习俗承载着地域文化和价值观念，感恩节的感恩寓意与美国农业立国的历史背景相关，体现了人文习俗与历史发展、农业生产的关联。"
+        }, {
+            id: 18,
+            title: "为什么朝鲜族喜欢吃泡菜？（）",
+            options: {
+                A: "泡菜耐储存，适配冬季蔬菜短缺的情况",
+                B: "朝鲜族气候适宜，适合制作泡菜",
+                C: "泡菜口感好，增进食欲",
+                D: "传统饮食文化，代代相传"
+            },
+            correct: "A",
+            explanation: "朝鲜族聚居区冬季寒冷漫长，新鲜蔬菜难以种植和保存，泡菜经过腌制后耐储存，可作为冬季主要蔬菜来源；同时泡菜风味独特，逐渐成为传统饮食。",
+            analysis: "饮食储存习惯受气候条件制约，朝鲜族的泡菜文化是对冬季蔬菜短缺问题的适应性解决方案，体现了饮食习俗与自然气候的协调。"
+        }, {
+            id: 19,
+            title: "为什么埃及人崇拜金字塔？（）",
+            options: {
+                A: "金字塔是法老的陵墓，象征权力和地位",
+                B: "金字塔建筑工艺精湛，彰显智慧",
+                C: "金字塔是埃及的标志，吸引游客",
+                D: "传统信仰，崇拜金字塔的神圣性"
+            },
+            correct: "A",
+            explanation: "金字塔是古埃及法老的陵墓，建筑规模宏大，象征着法老的至高权力和地位，同时融入了古埃及的宗教信仰和来世观念，成为崇拜对象。",
+            analysis: "人文景观的崇拜价值与历史、宗教、权力结构密切相关，金字塔的崇拜文化体现了古埃及的社会结构和宗教信仰，是人文地理中文化景观与社会文化的深度融合。"
+        }, {
+            id: 20,
+            title: "为什么中国人喜欢在清明节扫墓？（）",
+            options: {
+                A: "缅怀祖先，传承孝道文化",
+                B: "清明节气候适宜，适合户外活动",
+                C: "传统习俗，一直延续",
+                D: "清明节是春季，万物复苏，纪念祖先"
+            },
+            correct: "A",
+            explanation: "清明节扫墓是中国传统孝道文化的重要体现，通过祭拜祖先表达缅怀之情，传承家族记忆和孝道观念，是连接祖先与后代的文化纽带。",
+            analysis: "民俗活动往往承载着核心文化价值，清明节扫墓习俗体现了中国传统文化中的孝道观念和家族情怀，是人文习俗与文化传承的重要载体。"
+        }
+			]
+        };
+
+        // 全局状态管理
+        const state = {
+            currentTab: "plant",
+            pageIndex: {
+                plant: 0,
+                animal: 0,
+                climate: 0,
+                city: 0,
+                food: 0,
+                custom: 0
+            },
+            selectedOption: {} // 存储各分类当前题的选中选项
+        };
+
+        // 初始化页面
+        function init() {
+            // 渲染默认标签的题目
+            renderQuestion("plant", 0);
+            // 绑定标签切换事件
+            bindTabEvents();
+            // 绑定分页事件
+            bindPageEvents();
+        }
+
+        // 渲染题目
+        function renderQuestion(tabKey, index) {
+            const questionList = document.getElementById(`${tabKey}-list`);
+            const questions = quizData[tabKey];
+            const currentQ = questions[index];
+
+            // 清空原有内容
+            questionList.innerHTML = `
+                <div class="question-item">
+                    <div class="question-title">${currentQ.title}</div>
+                    <div class="options">
+                        ${Object.entries(currentQ.options).map(([key, value]) => `
+                            <div class="option" data-option="${key}">${key}. ${value}</div>
+                        `).join('')}
+                    </div>
+                    <button class="answer-btn" id="submit-${tabKey}">提交答案</button>
+                    <div class="answer-result" id="result-${tabKey}">
+                        <h4 id="result-title-${tabKey}"></h4>
+                        <p id="result-desc-${tabKey}"></p>
+                        <div class="analysis" id="result-analysis-${tabKey}"></div>
+                    </div>
+                </div>
+            `;
+
+            // 绑定选项选择事件
+            bindOptionEvents(tabKey);
+            // 绑定提交答案事件
+            bindSubmitEvent(tabKey);
+            // 重置结果显示
+            document.getElementById(`result-${tabKey}`).style.display = "none";
+            // 重置提交按钮状态
+            document.getElementById(`submit-${tabKey}`).disabled = false;
+            // 清空选中状态
+            state.selectedOption[tabKey] = null;
+        }
+
+        // 绑定标签切换事件
+        function bindTabEvents() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // 移除所有标签和内容的active状态
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.quiz-content').forEach(c => c.classList.remove('active'));
+                    // 添加当前标签和内容的active状态
+                    this.classList.add('active');
+                    const tabKey = this.dataset.tab;
+                    state.currentTab = tabKey;
+                    document.getElementById(tabKey).classList.add('active');
+                    // 渲染当前标签的当前页题目
+                    renderQuestion(tabKey, state.pageIndex[tabKey]);
+                    // 更新分页按钮状态
+                    updatePageBtnStatus(tabKey);
+                });
+            });
+        }
+
+        // 绑定选项选择事件
+        function bindOptionEvents(tabKey) {
+            const options = document.querySelectorAll(`#${tabKey}-list .option`);
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    // 移除所有选项的选中状态
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    // 添加当前选项的选中状态
+                    this.classList.add('selected');
+                    // 记录选中的选项
+                    state.selectedOption[tabKey] = this.dataset.option;
+                });
+            });
+        }
+
+        // 绑定提交答案事件
+        function bindSubmitEvent(tabKey) {
+            const submitBtn = document.getElementById(`submit-${tabKey}`);
+            submitBtn.addEventListener('click', function() {
+                const selected = state.selectedOption[tabKey];
+                if (!selected) {
+                    alert("请先选择一个选项！");
+                    return;
+                }
+
+                const questions = quizData[tabKey];
+                const currentQ = questions[state.pageIndex[tabKey]];
+                const resultEl = document.getElementById(`result-${tabKey}`);
+                const titleEl = document.getElementById(`result-title-${tabKey}`);
+                const descEl = document.getElementById(`result-desc-${tabKey}`);
+                const analysisEl = document.getElementById(`result-analysis-${tabKey}`);
+
+                // 禁用提交按钮
+                submitBtn.disabled = true;
+
+                // 判断答案是否正确
+                if (selected === currentQ.correct) {
+                    // 正确
+                    resultEl.className = "answer-result correct";
+                    titleEl.innerHTML = "✅ 回答正确！";
+                    descEl.textContent = currentQ.explanation;
+                    analysisEl.textContent = currentQ.analysis;
+                } else {
+                    // 错误，标记错误选项和正确选项
+                    const options = document.querySelectorAll(`#${tabKey}-list .option`);
+                    options.forEach(opt => {
+                        if (opt.dataset.option === selected) {
+                            opt.classList.add('wrong');
+                            opt.classList.remove('selected');
+                        }
+                        if (opt.dataset.option === currentQ.correct) {
+                            opt.classList.add('selected');
+                        }
+                    });
+                    resultEl.className = "answer-result incorrect";
+                    titleEl.innerHTML = "❌ 回答错误！";
+                    descEl.textContent = `正确答案是：${currentQ.correct}. ${currentQ.options[currentQ.correct]}，${currentQ.explanation}`;
+                    analysisEl.textContent = currentQ.analysis;
+                }
+
+                // 显示结果
+                resultEl.style.display = "block";
+            });
+        }
+
+        // 绑定分页事件
+        function bindPageEvents() {
+            // 遍历所有标签，绑定上一题/下一题事件
+            Object.keys(quizData).forEach(tabKey => {
+                // 上一题
+                const prevBtn = document.getElementById(`prev-${tabKey}`);
+                if (prevBtn) {
+                    prevBtn.addEventListener('click', function() {
+                        state.pageIndex[tabKey]--;
+                        renderQuestion(tabKey, state.pageIndex[tabKey]);
+                        updatePageBtnStatus(tabKey);
+                    });
+                }
+                // 下一题
+                const nextBtn = document.getElementById(`next-${tabKey}`);
+                if (nextBtn) {
+                    nextBtn.addEventListener('click', function() {
+                        state.pageIndex[tabKey]++;
+                        renderQuestion(tabKey, state.pageIndex[tabKey]);
+                        updatePageBtnStatus(tabKey);
+                    });
+                }
+            });
+        }
+
+        // 更新分页按钮状态（禁用/启用）
+        function updatePageBtnStatus(tabKey) {
+            const prevBtn = document.getElementById(`prev-${tabKey}`);
+            const nextBtn = document.getElementById(`next-${tabKey}`);
+            const pageInfo = document.getElementById(`page-${tabKey}`);
+            const total = quizData[tabKey].length;
+            const current = state.pageIndex[tabKey] + 1;
+
+            // 更新页码显示
+            pageInfo.textContent = `第 ${current} / ${total} 题`;
+
+            // 禁用/启用上一题按钮
+            prevBtn.disabled = state.pageIndex[tabKey] === 0;
+            // 禁用/启用下一题按钮
+            nextBtn.disabled = state.pageIndex[tabKey] === total - 1;
+        }
+
+        // 初始化
+        window.onload = init;
+    </script>
+</body>
+</html>
