@@ -1636,19 +1636,26 @@
         };
 
         // 全局状态管理
-        const state = {
-            currentTab: "plant",
-            pageIndex: {
-                plant: 0,
-                animal: 0,
-                climate: 0,
-                city: 0,
-                food: 0,
-                custom: 0
-            },
-            selectedOption: {} // 存储各分类当前题的选中选项
-        };
-
+const state = {
+    currentTab: "plant",
+    pageIndex: {
+        plant: 0,
+        animal: 0,
+        climate: 0,
+        city: 0,
+        food: 0,
+        custom: 0
+    },
+    selectedOption: {}, // 临时存储当前题选中选项
+    answerRecords: {    // 留存所有题的答题记录（刷新清空）
+        plant: {},
+        animal: {},
+        climate: {},
+        city: {},
+        food: {},
+        custom: {}
+    }
+};
         // 初始化页面
         function init() {
             // 渲染默认标签的题目
@@ -1659,41 +1666,40 @@
             bindPageEvents();
         }
 
-        // 渲染题目
-        function renderQuestion(tabKey, index) {
-            const questionList = document.getElementById(`${tabKey}-list`);
-            const questions = quizData[tabKey];
-            const currentQ = questions[index];
+        // 渲染题目（含答题记录恢复）
+function renderQuestion(tabKey, index) {
+    const questionList = document.getElementById(`${tabKey}-list`);
+    const questions = quizData[tabKey];
+    const currentQ = questions[index];
+    const record = state.answerRecords[tabKey][index] || {}; // 获取当前题的答题记录
 
-            // 清空原有内容
-            questionList.innerHTML = `
-                <div class="question-item">
-                    <div class="question-title">${currentQ.title}</div>
-                    <div class="options">
-                        ${Object.entries(currentQ.options).map(([key, value]) => `
-                            <div class="option" data-option="${key}">${key}. ${value}</div>
-                        `).join('')}
-                    </div>
-                    <button class="answer-btn" id="submit-${tabKey}">提交答案</button>
-                    <div class="answer-result" id="result-${tabKey}">
-                        <h4 id="result-title-${tabKey}"></h4>
-                        <p id="result-desc-${tabKey}"></p>
-                        <div class="analysis" id="result-analysis-${tabKey}"></div>
-                    </div>
-                </div>
-            `;
+    // 清空原有内容
+    questionList.innerHTML = `
+        <div class="question-item">
+            <div class="question-title">${currentQ.title}</div>
+            <div class="options">
+                ${Object.entries(currentQ.options).map(([key, value]) => `
+                    <div class="option ${record.selected === key ? (record.isCorrect ? 'selected' : 'wrong') : (record.correct === key ? 'selected' : '')}" data-option="${key}">${key}. ${value}</div>
+                `).join('')}
+            </div>
+            <button class="answer-btn" id="submit-${tabKey}" ${record.submitted ? 'disabled' : ''}>提交答案</button>
+            <div class="answer-result ${record.isCorrect ? 'correct' : record.submitted ? 'incorrect' : ''}" id="result-${tabKey}" style="${record.submitted ? 'display:block' : 'display:none'}">
+                <h4 id="result-title-${tabKey}">${record.isCorrect ? '✅ 回答正确！' : record.submitted ? '❌ 回答错误！' : ''}</h4>
+                <p id="result-desc-${tabKey}">${record.submitted ? (record.isCorrect ? currentQ.explanation : `正确答案是：${currentQ.correct}. ${currentQ.options[currentQ.correct]}，${currentQ.explanation}`) : ''}</p>
+                <div class="analysis" id="result-analysis-${tabKey}">${record.submitted ? currentQ.analysis : ''}</div>
+            </div>
+        </div>
+    `;
 
-            // 绑定选项选择事件
-            bindOptionEvents(tabKey);
-            // 绑定提交答案事件
-            bindSubmitEvent(tabKey);
-            // 重置结果显示
-            document.getElementById(`result-${tabKey}`).style.display = "none";
-            // 重置提交按钮状态
-            document.getElementById(`submit-${tabKey}`).disabled = false;
-            // 清空选中状态
-            state.selectedOption[tabKey] = null;
-        }
+    // 绑定选项选择事件
+    bindOptionEvents(tabKey);
+    // 绑定提交答案事件
+    bindSubmitEvent(tabKey);
+    // 恢复临时选中状态（未提交时）
+    if (!record.submitted) {
+        state.selectedOption[tabKey] = record.selected || null;
+    }
+}
 
         // 绑定标签切换事件
         function bindTabEvents() {
@@ -1716,70 +1722,89 @@
             });
         }
 
-        // 绑定选项选择事件
-        function bindOptionEvents(tabKey) {
+        // 绑定选项选择事件（含临时状态记录）
+function bindOptionEvents(tabKey) {
+    const options = document.querySelectorAll(`#${tabKey}-list .option`);
+    options.forEach(option => {
+        option.addEventListener('click', function() {
+            const index = state.pageIndex[tabKey];
+            // 未提交时才允许修改选中状态
+            if (!state.answerRecords[tabKey][index]?.submitted) {
+                // 移除所有选项的选中状态
+                options.forEach(opt => opt.classList.remove('selected', 'wrong'));
+                // 添加当前选项的选中状态
+                this.classList.add('selected');
+                // 记录选中的选项（临时+持久）
+                state.selectedOption[tabKey] = this.dataset.option;
+                state.answerRecords[tabKey][index] = {
+                    ...state.answerRecords[tabKey][index],
+                    selected: this.dataset.option,
+                    submitted: false // 未提交
+                };
+            }
+        });
+    });
+}
+
+        // 绑定提交答案事件（含记录保存）
+function bindSubmitEvent(tabKey) {
+    const submitBtn = document.getElementById(`submit-${tabKey}`);
+    submitBtn.addEventListener('click', function() {
+        const selected = state.selectedOption[tabKey];
+        if (!selected) {
+            alert("请先选择一个选项！");
+            return;
+        }
+
+        const index = state.pageIndex[tabKey];
+        const questions = quizData[tabKey];
+        const currentQ = questions[index];
+        const resultEl = document.getElementById(`result-${tabKey}`);
+        const titleEl = document.getElementById(`result-title-${tabKey}`);
+        const descEl = document.getElementById(`result-desc-${tabKey}`);
+        const analysisEl = document.getElementById(`result-analysis-${tabKey}`);
+
+        // 禁用提交按钮
+        submitBtn.disabled = true;
+
+        // 判断答案是否正确
+        const isCorrect = selected === currentQ.correct;
+        if (isCorrect) {
+            // 正确
+            resultEl.className = "answer-result correct";
+            titleEl.innerHTML = "✅ 回答正确！";
+            descEl.textContent = currentQ.explanation;
+            analysisEl.textContent = currentQ.analysis;
+        } else {
+            // 错误，标记错误选项和正确选项
             const options = document.querySelectorAll(`#${tabKey}-list .option`);
-            options.forEach(option => {
-                option.addEventListener('click', function() {
-                    // 移除所有选项的选中状态
-                    options.forEach(opt => opt.classList.remove('selected'));
-                    // 添加当前选项的选中状态
-                    this.classList.add('selected');
-                    // 记录选中的选项
-                    state.selectedOption[tabKey] = this.dataset.option;
-                });
+            options.forEach(opt => {
+                if (opt.dataset.option === selected) {
+                    opt.classList.add('wrong');
+                    opt.classList.remove('selected');
+                }
+                if (opt.dataset.option === currentQ.correct) {
+                    opt.classList.add('selected');
+                }
             });
+            resultEl.className = "answer-result incorrect";
+            titleEl.innerHTML = "❌ 回答错误！";
+            descEl.textContent = `正确答案是：${currentQ.correct}. ${currentQ.options[currentQ.correct]}，${currentQ.explanation}`;
+            analysisEl.textContent = currentQ.analysis;
         }
 
-        // 绑定提交答案事件
-        function bindSubmitEvent(tabKey) {
-            const submitBtn = document.getElementById(`submit-${tabKey}`);
-            submitBtn.addEventListener('click', function() {
-                const selected = state.selectedOption[tabKey];
-                if (!selected) {
-                    alert("请先选择一个选项！");
-                    return;
-                }
+        // 保存答题记录到state
+        state.answerRecords[tabKey][index] = {
+            selected: selected,       // 选中的选项
+            correct: currentQ.correct,// 正确答案
+            isCorrect: isCorrect,     // 是否正确
+            submitted: true           // 是否提交过
+        };
 
-                const questions = quizData[tabKey];
-                const currentQ = questions[state.pageIndex[tabKey]];
-                const resultEl = document.getElementById(`result-${tabKey}`);
-                const titleEl = document.getElementById(`result-title-${tabKey}`);
-                const descEl = document.getElementById(`result-desc-${tabKey}`);
-                const analysisEl = document.getElementById(`result-analysis-${tabKey}`);
-
-                // 禁用提交按钮
-                submitBtn.disabled = true;
-
-                // 判断答案是否正确
-                if (selected === currentQ.correct) {
-                    // 正确
-                    resultEl.className = "answer-result correct";
-                    titleEl.innerHTML = "✅ 回答正确！";
-                    descEl.textContent = currentQ.explanation;
-                    analysisEl.textContent = currentQ.analysis;
-                } else {
-                    // 错误，标记错误选项和正确选项
-                    const options = document.querySelectorAll(`#${tabKey}-list .option`);
-                    options.forEach(opt => {
-                        if (opt.dataset.option === selected) {
-                            opt.classList.add('wrong');
-                            opt.classList.remove('selected');
-                        }
-                        if (opt.dataset.option === currentQ.correct) {
-                            opt.classList.add('selected');
-                        }
-                    });
-                    resultEl.className = "answer-result incorrect";
-                    titleEl.innerHTML = "❌ 回答错误！";
-                    descEl.textContent = `正确答案是：${currentQ.correct}. ${currentQ.options[currentQ.correct]}，${currentQ.explanation}`;
-                    analysisEl.textContent = currentQ.analysis;
-                }
-
-                // 显示结果
-                resultEl.style.display = "block";
-            });
-        }
+        // 显示结果
+        resultEl.style.display = "block";
+    });
+}
 
         // 绑定分页事件
         function bindPageEvents() {
