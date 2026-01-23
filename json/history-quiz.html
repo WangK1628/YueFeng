@@ -426,7 +426,7 @@
         };
 
         // 加载JSON数据并初始化页面
-        fetch('./json/history-quiz.json')
+        fetch('history-quiz.json')
             .then(response => {
                 if (!response.ok) throw new Error('JSON文件加载失败');
                 return response.json();
@@ -609,4 +609,5 @@
         }
     </script>
 </body>
+
 </html>
