@@ -36,4 +36,4 @@
 - 英语听说教材3D展示页
      https://wangk1628.github.io/YueFeng/%E4%B9%A6%E7%B1%8D3D.html
 - 使用教程
-月峰听说-用户手册
+月峰听说-用户手册--https://wcnff90dyih2.feishu.cn/wiki/LWa4wSsB2iuO3hkGgn4ckS5WnWe
