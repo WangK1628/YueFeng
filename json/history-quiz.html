@@ -501,7 +501,9 @@
             optionsContainer.className = 'options';
 
             // 生成选项
-            Object.entries(currentQuestion.options).forEach(([key, value]) => {
+            //Object.entries(currentQuestion.options).forEach(([key, value]) => {
+            const shuffledOptions = shuffleArray(Object.entries(currentQuestion.options));
+shuffledOptions.forEach(([key, value]) => {
                 const option = document.createElement('div');
                 option.className = 'option';
                 option.dataset.key = key;
@@ -626,3 +628,4 @@
     </script>
 </body>
 </html>
+
