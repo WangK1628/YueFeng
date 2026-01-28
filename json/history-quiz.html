@@ -425,6 +425,16 @@
             modern: { current: 0, selected: null, answered: false }
         };
 
+        // 定义随机打乱数组的函数（Fisher-Yates 洗牌算法）
+        function shuffleArray(array) {
+            const newArray = [...array]; // 复制原数组，避免修改原数据
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
         // 加载JSON数据并初始化页面
         fetch('history-quiz.json')
             .then(response => {
@@ -432,12 +442,18 @@
                 return response.json();
             })
             .then(quizData => {
+                // 核心改动：对每个分类的题目数组进行随机打乱
+                const shuffledQuizData = {};
+                Object.keys(quizData).forEach(type => {
+                    shuffledQuizData[type] = shuffleArray(quizData[type]);
+                });
+
                 // 初始化标签切换
                 initTabSwitch();
-                // 初始化各分类题目
-                Object.keys(quizData).forEach(type => {
-                    renderQuestion(type, quizData);
-                    initPageNav(type, quizData);
+                // 初始化各分类题目（传入打乱后的数据）
+                Object.keys(shuffledQuizData).forEach(type => {
+                    renderQuestion(type, shuffledQuizData);
+                    initPageNav(type, shuffledQuizData);
                 });
             })
             .catch(error => {
@@ -609,5 +625,4 @@
         }
     </script>
 </body>
-
 </html>
