@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>极速智能相册</title>
+    <title>相册</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <script>
@@ -27,7 +27,7 @@
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
     <header class="py-10 px-4 text-center">
         <div class="max-w-5xl mx-auto">
-            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-slate-800 mb-3">极速相册</h1>
+            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-slate-800 mb-3">相册</h1>
             <p class="text-slate-600 text-lg mb-6">并行扫描，实时渲染图片</p>
             <button id="refreshBtn" class="btn-gradient flex items-center gap-2 mx-auto">
                 <i class="fa fa-refresh"></i>
@@ -67,7 +67,7 @@
         const CONFIG = {
             folder: './photo/',
             prefix: ['IMG', 'img'],
-            numRange: [500, 600],
+            numRange: [1, 600],
             ext: ['jpg', 'JPG', 'jpeg', 'JPEG', 'png', 'PNG'],
             parallelLimit: 10,
             timeout: 800
