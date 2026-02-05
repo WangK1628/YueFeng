@@ -3,25 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>稳定自动加载相册</title>
+    <title>智能相册</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: '#7C3AED', secondary: '#C084FC' },
-                },
+                    colors: {
+                        primary: '#7C3AED',
+                        secondary: '#C084FC'
+                    }
+                }
             }
         }
     </script>
     <style type="text/tailwindcss">
         @layer utilities {
-            .gallery-card { @apply relative overflow-hidden rounded-xl bg-white shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1 cursor-pointer; }
+            .gallery-card { @apply relative overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer; }
             .img-fade { @apply opacity-0 transition-opacity duration-500; }
-            .btn-gradient { @apply bg-gradient-to-r from-primary to-secondary text-white font-medium py-3 px-6 rounded-lg transition-all hover:scale-105; }
+            .btn-gradient { @apply bg-gradient-to-r from-primary to-secondary text-white font-medium py-3 px-6 rounded-lg transition hover:scale-105; }
             .image-tag { @apply absolute top-3 left-3 bg-primary/80 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm; }
-            .btn-disabled { @apply opacity-60 cursor-not-allowed !important; }
+            .btn-disabled { @apply opacity-60 cursor-not-allowed; }
         }
     </style>
 </head>
@@ -29,10 +32,10 @@
     <header class="py-10 px-4 text-center">
         <div class="max-w-5xl mx-auto">
             <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-slate-800 mb-3">智能相册</h1>
-            <p class="text-slate-600 text-lg mb-6">打开自动加载，点击按钮刷新图片</p>
+            <p class="text-slate-600 text-lg mb-6">打开自动加载 | 点击按钮刷新</p>
             <button id="refreshBtn" class="btn-gradient flex items-center gap-2 mx-auto">
                 <i class="fa fa-refresh"></i>
-                <span>获取相册图片</span>
+                <span>刷新相册</span>
             </button>
         </div>
     </header>
@@ -42,45 +45,47 @@
         <div id="emptyTip" class="hidden flex flex-col items-center justify-center py-20 text-center">
             <i class="fa fa-images text-6xl text-slate-300 mb-4"></i>
             <p class="text-xl text-slate-500">未找到符合规则的图片</p>
-            <p class="text-slate-400">支持格式：IMG_1.jpg ~ IMG_100.png，放入photo文件夹</p>
+            <p class="text-slate-400">格式要求：photo/IMG_数字.jpg，支持1-100</p>
         </div>
         <div id="loadingTip" class="hidden text-center py-10">
             <i class="fa fa-spinner fa-spin text-primary text-3xl"></i>
-            <p class="mt-3 text-slate-600">正在扫描图片...</p>
+            <p class="mt-3 text-slate-600">扫描中...</p>
         </div>
     </main>
 
-    <!-- 灯箱模块 -->
-    <div id="lightbox" class="fixed inset-0 bg-black/95 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <button id="closeBtn" class="absolute top-6 right-6 text-white text-3xl hover:text-primary transition-colors">
+    <!-- 灯箱预览 -->
+    <div id="lightbox" class="fixed inset-0 bg-black/95 z-50 hidden items-center justify-center p-4">
+        <button id="closeBtn" class="absolute top-6 right-6 text-white text-3xl hover:text-primary">
             <i class="fa fa-times"></i>
         </button>
-        <button id="prevBtn" class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-primary">
+        <button id="prevBtn" class="absolute left-8 top-1/2 -translate-y-1/2 text-white text-3xl hover:text-primary">
             <i class="fa fa-chevron-left"></i>
         </button>
-        <img id="lightboxImg" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" alt="预览图片">
-        <button id="nextBtn" class="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-primary">
+        <img id="lightboxImg" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg" alt="预览">
+        <button id="nextBtn" class="absolute right-8 top-1/2 -translate-y-1/2 text-white text-3xl hover:text-primary">
             <i class="fa fa-chevron-right"></i>
         </button>
     </div>
 
     <script>
-        // ===================== 核心配置 =====================
+        // 核心配置
         const CONFIG = {
-            folder: './photo/',           // 图片文件夹路径
-            prefix: 'IMG',                 // 图片前缀
-            startNum: 1,                   // 起始序号：1
-            endNum: 100,                   // 结束序号：100
-            exts: ['jpg', 'JPG', 'png', 'PNG', 'jpeg', 'JPEG'], // 兼容格式
-            maxFailCount: 5               // 连续失效5张图片，提前终止扫描
+            folder: './photo/',
+            prefix: 'IMG',
+            startNum: 1,
+            endNum: 100,
+            // 仅匹配最常用格式，减少无效请求
+            exts: ['jpg', 'JPG'],
+            // 连续3张图片失效，立即终止扫描，杜绝无限循环
+            maxFailCount: 3
         };
 
-        // 全局状态
+        // 全局变量
         const imageList = [];
         let currentIndex = 0;
-        let isScanning = false; // 扫描锁，防止重复执行
+        let isScanning = false;
 
-        // DOM元素
+        // DOM 获取
         const gallery = document.getElementById('gallery');
         const emptyTip = document.getElementById('emptyTip');
         const loadingTip = document.getElementById('loadingTip');
@@ -88,50 +93,42 @@
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightboxImg');
 
-        // ===================== 工具函数 =====================
-        /**
-         * 检测单张图片是否可加载
-         */
+        // 检测图片是否有效
         function checkImage(url) {
             return new Promise(resolve => {
                 const img = new Image();
-                // 600ms超时，避免请求卡死
-                const timer = setTimeout(() => resolve(false), 600);
+                // 500ms超时，防止请求阻塞
+                const timer = setTimeout(() => resolve(false), 500);
                 img.onload = () => { clearTimeout(timer); resolve(true); };
                 img.onerror = () => { clearTimeout(timer); resolve(false); };
-                img.src = `${url}?t=${Date.now()}`; // 清除浏览器缓存
+                // 加时间戳，清除缓存
+                img.src = `${url}?t=${Date.now()}`;
             });
         }
 
-        /**
-         * 实时渲染单张图片
-         */
-        function renderImage(item) {
+        // 渲染单张图片卡片
+        function renderSingleImage(item) {
             const card = document.createElement('div');
             card.className = 'gallery-card';
 
-            // 图片标签
             const tag = document.createElement('span');
             tag.className = 'image-tag';
             tag.textContent = CONFIG.prefix;
 
-            // 图片元素
             const img = document.createElement('img');
             img.loading = 'lazy';
             img.src = item.url;
             img.alt = `${CONFIG.prefix}_${item.num}`;
-            img.className = 'w-full h-64 md:h-72 object-cover img-fade';
+            img.className = 'w-full h-64 object-cover img-fade';
 
-            // 加载完成渐入动画
+            // 加载完成渐入
             img.onload = () => img.classList.remove('img-fade');
-            // 加载失败兜底图
-            img.onerror = () => img.src = `https://picsum.photos/seed=${item.num}/800/600`;
-
             // 点击打开灯箱
             img.addEventListener('click', () => {
                 currentIndex = imageList.findIndex(i => i.num === item.num);
                 lightboxImg.src = item.url;
                 lightbox.classList.remove('hidden');
+                lightbox.classList.add('flex');
                 document.body.style.overflow = 'hidden';
             });
 
@@ -140,7 +137,7 @@
             gallery.appendChild(card);
         }
 
-        // ===================== 核心扫描逻辑 =====================
+        // 核心扫描逻辑
         async function startScan() {
             // 防重复扫描
             if (isScanning) return;
@@ -148,7 +145,7 @@
             refreshBtn.disabled = true;
             refreshBtn.classList.add('btn-disabled');
 
-            // 重置页面状态
+            // 重置状态
             gallery.innerHTML = '';
             imageList.length = 0;
             emptyTip.classList.add('hidden');
@@ -156,48 +153,51 @@
 
             let failCount = 0;
 
-            // 遍历 1-100 所有序号
+            // 遍历 1-100
             for (let num = CONFIG.startNum; num <= CONFIG.endNum; num++) {
-                let found = false;
-                // 遍历所有图片格式检测
+                let isFound = false;
+
+                // 遍历支持的格式
                 for (const ext of CONFIG.exts) {
-                    const filePath = `${CONFIG.folder}${CONFIG.prefix}_${num}.${ext}`;
-                    const exists = await checkImage(filePath);
-                    if (exists) {
-                        const imageItem = { url: filePath, num: num };
-                        imageList.push(imageItem);
-                        renderImage(imageItem); // 实时渲染到页面
-                        found = true;
+                    const path = `${CONFIG.folder}${CONFIG.prefix}_${num}.${ext}`;
+                    const valid = await checkImage(path);
+
+                    if (valid) {
+                        const imgData = { url: path, num: num };
+                        imageList.push(imgData);
+                        renderSingleImage(imgData);
+                        isFound = true;
                         failCount = 0;
                         break;
                     }
                 }
 
-                // 连续失效判断，提前终止无效遍历
-                if (!found) {
+                // 连续失效判断，强制终止
+                if (!isFound) {
                     failCount++;
                     if (failCount >= CONFIG.maxFailCount) {
-                        console.log(`连续${failCount}张图片失效，终止扫描`);
+                        console.log(`连续${failCount}张图片无效，终止扫描`);
                         break;
                     }
                 }
             }
 
-            // 扫描完成，恢复按钮状态
+            // 扫描结束，恢复状态
             loadingTip.classList.add('hidden');
             isScanning = false;
             refreshBtn.disabled = false;
             refreshBtn.classList.remove('btn-disabled');
 
-            // 无图片时显示提示
+            // 无图片展示空状态
             if (imageList.length === 0) {
                 emptyTip.classList.remove('hidden');
             }
         }
 
-        // ===================== 灯箱控制 =====================
+        // -------- 灯箱控制逻辑 --------
         function closeLightbox() {
             lightbox.classList.add('hidden');
+            lightbox.classList.remove('flex');
             document.body.style.overflow = 'auto';
         }
 
@@ -211,17 +211,17 @@
             lightboxImg.src = imageList[currentIndex].url;
         }
 
-        // ===================== 事件绑定 =====================
-        // 按钮点击刷新图片
+        // -------- 事件绑定 --------
+        // 刷新按钮
         refreshBtn.addEventListener('click', startScan);
         // 关闭灯箱
         document.getElementById('closeBtn').addEventListener('click', closeLightbox);
-        // 上一张/下一张
+        // 上下切换
         document.getElementById('prevBtn').addEventListener('click', () => switchImage('prev'));
         document.getElementById('nextBtn').addEventListener('click', () => switchImage('next'));
-        // 点击空白处关闭灯箱
+        // 点击背景关闭
         lightbox.addEventListener('click', (e) => e.target === lightbox && closeLightbox());
-        // 键盘快捷键控制
+        // 键盘控制
         document.addEventListener('keydown', (e) => {
             if (!lightbox.classList.contains('hidden')) {
                 if (e.key === 'Escape') closeLightbox();
@@ -230,7 +230,7 @@
             }
         });
 
-        // ===================== 页面加载完成自动扫描 =====================
+        // 页面加载完成自动扫描
         window.addEventListener('DOMContentLoaded', startScan);
     </script>
 </body>
