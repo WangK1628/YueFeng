@@ -3,43 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能相册</title>
+    <title>调试版智能相册</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
-                        primary: '#7C3AED',
-                        secondary: '#C084FC',
-                    },
+                    colors: { primary: '#7C3AED', secondary: '#C084FC' },
                 },
             }
         }
     </script>
     <style type="text/tailwindcss">
         @layer utilities {
-            .gallery-card {
-                @apply relative overflow-hidden rounded-xl bg-white shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1 cursor-pointer;
-            }
-            .img-fade {
-                @apply opacity-0 transition-opacity duration-500;
-            }
-            .btn-gradient {
-                @apply bg-gradient-to-r from-primary to-secondary text-white font-medium py-3 px-6 rounded-lg transition-all hover:scale-105 focus:outline-none;
-            }
-            .image-tag {
-                @apply absolute top-3 left-3 bg-primary/80 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm;
-            }
+            .gallery-card { @apply relative overflow-hidden rounded-xl bg-white shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1 cursor-pointer; }
+            .img-fade { @apply opacity-0 transition-opacity duration-500; }
+            .btn-gradient { @apply bg-gradient-to-r from-primary to-secondary text-white font-medium py-3 px-6 rounded-lg transition-all hover:scale-105; }
+            .image-tag { @apply absolute top-3 left-3 bg-primary/80 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm; }
         }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
     <header class="py-10 px-4 text-center">
         <div class="max-w-5xl mx-auto">
-            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-slate-800 mb-3">智能相册</h1>
-            <p class="text-slate-600 text-lg mb-6">适配格式：IMG_数字.后缀，自动扫描加载</p>
+            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-slate-800 mb-3">调试版相册</h1>
+            <p class="text-slate-600 text-lg mb-6">自动扫描IMG_图片，控制台查看详细日志</p>
             <button id="refreshBtn" class="btn-gradient flex items-center gap-2 mx-auto">
                 <i class="fa fa-refresh"></i>
                 <span>获取相册图片</span>
@@ -52,7 +41,7 @@
         <div id="emptyTip" class="hidden flex flex-col items-center justify-center py-20 text-center">
             <i class="fa fa-images text-6xl text-slate-300 mb-4"></i>
             <p class="text-xl text-slate-500">未找到符合规则的图片</p>
-            <p class="text-slate-400">支持格式：IMG_数字.jpg/JPG/png，放入photo文件夹后重试</p>
+            <p class="text-slate-400">按F12打开控制台查看扫描路径</p>
         </div>
         <div id="loadingTip" class="hidden text-center py-10">
             <i class="fa fa-spinner fa-spin text-primary text-3xl"></i>
@@ -67,84 +56,92 @@
         <button id="prevBtn" class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-primary">
             <i class="fa fa-chevron-left"></i>
         </button>
-        <img id="lightboxImg" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" alt="图片预览">
+        <img id="lightboxImg" class="max-h-[85vh] max-w-[90vw] object-contain rounded-lg shadow-2xl" alt="预览">
         <button id="nextBtn" class="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 text-white text-4xl hover:text-primary">
             <i class="fa fa-chevron-right"></i>
         </button>
     </div>
 
     <script>
-        // ===================== 核心配置 =====================
+        // 核心配置：全覆盖兼容模式
         const CONFIG = {
-            folder: './photo/',          
-            prefix: 'IMG',               
-            startNum: 1,               // 扩大起始数字范围
-            endNum: 1000,                // 扩大结束数字范围
-            ext: ['jpg', 'JPG', 'jpeg', 'JPEG', 'png', 'PNG'], // 兼容多后缀
-            maxContinueFail: 5           
+            folder: './photo/',
+            prefix: ['IMG', 'img'], // 兼容大写IMG+小写img
+            startNum: 1,      // 从1开始扫描，全覆盖
+            endNum: 9999,     // 超大结束范围，适配所有数字
+            ext: ['jpg', 'JPG', 'jpeg', 'JPEG', 'png', 'PNG'], // 全格式兼容
+            maxContinueFail: 10
         };
 
         const imageList = [];
         let currentIndex = 0;
-
         const gallery = document.getElementById('gallery');
         const emptyTip = document.getElementById('emptyTip');
         const loadingTip = document.getElementById('loadingTip');
         const refreshBtn = document.getElementById('refreshBtn');
         const lightbox = document.getElementById('lightbox');
         const lightboxImg = document.getElementById('lightboxImg');
-        const closeBtn = document.getElementById('closeBtn');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
 
-        // 检测图片是否存在
+        // 检测图片+控制台打印调试日志
         function checkImageExist(url) {
             return new Promise(resolve => {
                 const img = new Image();
-                img.onload = () => resolve(true);
-                img.onerror = () => resolve(false);
-                img.src = url + '?t=' + new Date().getTime(); // 加时间戳清除缓存
+                // 禁用缓存，添加时间戳
+                const cacheBustUrl = `${url}?t=${new Date().getTime()}`;
+                img.onload = () => {
+                    console.log('✅ 图片加载成功:', cacheBustUrl);
+                    resolve(true);
+                };
+                img.onerror = () => {
+                    console.log('❌ 图片加载失败(404):', cacheBustUrl);
+                    resolve(false);
+                };
+                img.src = cacheBustUrl;
             });
         }
 
-        // 优化后的扫描函数
+        // 兼容大小写前缀的扫描逻辑
         async function autoScanImages() {
             gallery.innerHTML = '';
             imageList.length = 0;
             loadingTip.classList.remove('hidden');
             emptyTip.classList.add('hidden');
+            console.log('======== 开始扫描图片 ========');
+            console.log('扫描目录:', CONFIG.folder);
 
             let failCount = 0;
-
             for (let num = CONFIG.startNum; num <= CONFIG.endNum; num++) {
                 let isExist = false;
                 let targetPath = '';
-                
-                for (const ext of CONFIG.ext) {
-                    const fileName = `${CONFIG.prefix}_${num}.${ext}`;
-                    const filePath = `${CONFIG.folder}${fileName}`;
-                    const checkResult = await checkImageExist(filePath);
-                    if (checkResult) {
-                        isExist = true;
-                        targetPath = filePath;
-                        break;
+
+                // 遍历所有前缀+后缀组合
+                prefixLoop: for (const prefix of CONFIG.prefix) {
+                    for (const ext of CONFIG.ext) {
+                        const fileName = `${prefix}_${num}.${ext}`;
+                        const filePath = `${CONFIG.folder}${fileName}`;
+                        const exist = await checkImageExist(filePath);
+                        if (exist) {
+                            targetPath = filePath;
+                            isExist = true;
+                            break prefixLoop;
+                        }
                     }
                 }
 
                 if (isExist) {
-                    imageList.push({
-                        url: targetPath,
-                        tag: CONFIG.prefix,
-                        num: num
-                    });
+                    imageList.push({ url: targetPath, tag: 'IMG', num: num });
                     failCount = 0;
                 } else {
                     failCount++;
-                    if (failCount >= CONFIG.maxContinueFail) break;
+                    if (failCount >= CONFIG.maxContinueFail) {
+                        console.log(`连续${failCount}张图片不存在，终止扫描`);
+                        break;
+                    }
                 }
             }
 
             loadingTip.classList.add('hidden');
+            console.log('======== 扫描完成，有效图片:', imageList.length, '张 ========');
             renderGallery();
         }
 
@@ -154,72 +151,44 @@
                 emptyTip.classList.remove('hidden');
                 return;
             }
-
             imageList.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'gallery-card';
-
                 const tag = document.createElement('span');
                 tag.className = 'image-tag';
                 tag.textContent = item.tag;
-
                 const img = document.createElement('img');
                 img.loading = 'lazy';
                 img.src = item.url;
-                img.alt = `${CONFIG.prefix}_${item.num}`;
                 img.className = 'w-full h-64 md:h-72 object-cover img-fade';
-                img.dataset.index = index;
-
                 img.onload = () => img.classList.remove('img-fade');
-                img.onerror = () => {
-                    img.src = `https://picsum.photos/seed=${index}/800/600`;
-                };
-
                 img.addEventListener('click', () => {
                     currentIndex = index;
-                    openLightbox(item.url);
+                    lightboxImg.src = item.url;
+                    lightbox.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
                 });
-
                 card.appendChild(tag);
                 card.appendChild(img);
                 gallery.appendChild(card);
             });
         }
 
-        // 灯箱功能
-        function openLightbox(src) {
-            lightboxImg.src = src;
-            lightbox.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeLightbox() {
+        // 灯箱控制
+        document.getElementById('closeBtn').addEventListener('click', () => {
             lightbox.classList.add('hidden');
             document.body.style.overflow = 'auto';
-        }
-
-        function switchImage(direction) {
-            if (direction === 'prev') {
-                currentIndex = currentIndex <= 0 ? imageList.length - 1 : currentIndex - 1;
-            } else {
-                currentIndex = currentIndex >= imageList.length - 1 ? 0 : currentIndex + 1;
-            }
+        });
+        function switchImg(dir) {
+            currentIndex = dir === 'prev' ? 
+                (currentIndex <= 0 ? imageList.length-1 : currentIndex-1) : 
+                (currentIndex >= imageList.length-1 ? 0 : currentIndex+1);
             lightboxImg.src = imageList[currentIndex].url;
         }
-
-        // 事件绑定
+        document.getElementById('prevBtn').addEventListener('click', () => switchImg('prev'));
+        document.getElementById('nextBtn').addEventListener('click', () => switchImg('next'));
         refreshBtn.addEventListener('click', autoScanImages);
-        closeBtn.addEventListener('click', closeLightbox);
-        prevBtn.addEventListener('click', () => switchImage('prev'));
-        nextBtn.addEventListener('click', () => switchImage('next'));
-        lightbox.addEventListener('click', (e) => e.target === lightbox && closeLightbox());
-        document.addEventListener('keydown', (e) => {
-            if (!lightbox.classList.contains('hidden')) {
-                e.key === 'Escape' && closeLightbox();
-                e.key === 'ArrowLeft' && switchImage('prev');
-                e.key === 'ArrowRight' && switchImage('next');
-            }
-        });
+        lightbox.addEventListener('click', e => e.target === lightbox && (lightbox.classList.add('hidden'), document.body.style.overflow = 'auto'));
     </script>
 </body>
 </html>
