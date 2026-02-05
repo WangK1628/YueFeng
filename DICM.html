@@ -38,7 +38,7 @@
 <body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
     <header class="py-10 px-4 text-center">
         <div class="max-w-5xl mx-auto">
-            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-slate-800 mb-3">规则命名相册</h1>
+            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-slate-800 mb-3">智能相册</h1>
             <p class="text-slate-600 text-lg mb-6">适配格式：IMG_数字.后缀，自动扫描加载</p>
             <button id="refreshBtn" class="btn-gradient flex items-center gap-2 mx-auto">
                 <i class="fa fa-refresh"></i>
@@ -78,7 +78,7 @@
         const CONFIG = {
             folder: './photo/',          
             prefix: 'IMG',               
-            startNum: 1,               // 扩大起始数字范围
+            startNum: 0500,               // 扩大起始数字范围
             endNum: 1000000,                // 扩大结束数字范围
             ext: ['jpg', 'JPG', 'jpeg', 'JPEG', 'png', 'PNG'], // 兼容多后缀
             maxContinueFail: 5           
